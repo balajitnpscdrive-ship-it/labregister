@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Don Bosco Lab Management System</title>
+<meta name="description" content="Lab Asset Management System — Don Bosco Polytechnic College, Department of Mechanical Engineering">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ══════════════════════════════════════════════════════
+   DESIGN TOKENS
+══════════════════════════════════════════════════════ */
+:root{
+  --bg:#0a0e1a; --surface:#111827; --card:rgba(255,255,255,.04);
+  --hover:rgba(255,255,255,.07); --glass:rgba(255,255,255,.06);
+  --glass-b:rgba(255,255,255,.10); --border:rgba(255,255,255,.08);
+  --primary:#3b82f6; --primary-glow:rgba(59,130,246,.25);
+  --secondary:#8b5cf6; --accent:#06b6d4;
+  --success:#10b981; --warning:#f59e0b; --danger:#ef4444;
+  --text:#f1f5f9; --text2:#94a3b8; --muted:#64748b;
+  --r:14px; --rs:8px; --shadow:0 4px 24px rgba(0,0,0,.4);
+  --t:all .25s cubic-bezier(.4,0,.2,1);
+  --sw:260px; --th:64px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;font-family:inherit}
+input,select,textarea{font-family:inherit}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:var(--rs);border:none;font-size:.875rem;font-weight:600;transition:var(--t);cursor:pointer;white-space:nowrap}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;box-shadow:0 4px 16px rgba(59,130,246,.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(59,130,246,.45)}
+.btn-success{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+.btn-success:hover{transform:translateY(-1px)}
+.btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}
+.btn-danger:hover{transform:translateY(-1px)}
+.btn-warning{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff}
+.btn-warning:hover{transform:translateY(-1px)}
+.btn-secondary{background:rgba(255,255,255,.08);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{background:rgba(255,255,255,.12)}
+.btn-sm{padding:7px 13px;font-size:.8rem}
+.btn-lg{padding:13px 26px;font-size:1rem;width:100%}
+.btn-icon{width:33px;height:33px;padding:0;border-radius:7px}
+.btn i{font-size:.9em}
+
+/* ── FORM CONTROLS ───────────────────────────────── */
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase}
+.form-control{width:100%;padding:10px 13px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-size:.875rem;transition:var(--t);outline:none}
+.form-control:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow);background:rgba(255,255,255,.08)}
+select.form-control option{background:var(--surface)}
+textarea.form-control{resize:vertical;min-height:70px}
+
+/* ── BADGES ──────────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;font-size:.72rem;font-weight:600;white-space:nowrap}
+.badge-success{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3)}
+.badge-danger{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+.badge-warning{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3)}
+.badge-info{background:rgba(99,102,241,.15);color:#818cf8;border:1px solid rgba(99,102,241,.3)}
+.badge-secondary{background:rgba(255,255,255,.08);color:var(--text2);border:1px solid var(--border)}
+
+/* ── LOGIN ───────────────────────────────────────── */
+#login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 20% 50%,rgba(59,130,246,.15) 0%,transparent 60%),
+             radial-gradient(ellipse at 80% 20%,rgba(139,92,246,.15) 0%,transparent 60%),
+             var(--bg)}
+.login-box{width:420px;background:var(--glass);border:1px solid var(--glass-b);border-radius:24px;padding:40px;
+  backdrop-filter:blur(20px);box-shadow:0 24px 80px rgba(0,0,0,.5)}
+.login-logo-row{display:flex;align-items:center;gap:14px;margin-bottom:26px}
+.login-logo-row img{width:52px;height:52px;border-radius:10px;object-fit:contain;background:#fff;padding:3px}
+.login-logo-row .ci h2{font-family:'Poppins',sans-serif;font-size:.9rem;font-weight:700;line-height:1.2}
+.login-logo-row .ci span{font-size:.7rem;color:var(--text2)}
+.login-title{font-size:1.35rem;font-weight:700;margin-bottom:5px}
+.login-sub{color:var(--text2);font-size:.83rem;margin-bottom:26px}
+.gas-url-setup{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:14px;margin-bottom:20px}
+.gas-url-setup p{font-size:.78rem;color:var(--text2);margin-bottom:8px}
+
+/* ── APP LAYOUT ──────────────────────────────────── */
+#app-layout{display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR */
+#sidebar{width:var(--sw);background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.sb-header{padding:16px 14px 12px;border-bottom:1px solid var(--border)}
+.sb-logo-row{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.sb-logo{width:36px;height:36px;border-radius:8px;object-fit:contain;background:#fff;padding:3px}
+.sb-logo-ph{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--primary),var(--secondary));
+  display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;flex-shrink:0}
+.sb-college{font-family:'Poppins',sans-serif;font-size:.76rem;font-weight:700;line-height:1.3}
+.sb-dept{font-size:.66rem;color:var(--accent);margin-top:2px}
+.sb-nav{flex:1;overflow-y:auto;padding:10px 8px}
+.nav-sec{font-size:.63rem;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;padding:10px 8px 5px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--rs);color:var(--text2);
+  font-size:.84rem;font-weight:500;cursor:pointer;transition:var(--t);margin-bottom:2px}
+.nav-item:hover{background:var(--hover);color:var(--text)}
+.nav-item.active{background:linear-gradient(90deg,rgba(59,130,246,.18),rgba(139,92,246,.12));color:var(--primary);border-left:3px solid var(--primary)}
+.nav-item i{width:17px;text-align:center;font-size:.93rem}
+.nav-badge{margin-left:auto;background:var(--danger);color:#fff;font-size:.63rem;font-weight:700;padding:2px 7px;border-radius:99px}
+.sb-footer{padding:12px;border-top:1px solid var(--border)}
+.user-card{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:var(--rs);background:var(--card);cursor:pointer;transition:var(--t)}
+.user-card:hover{background:var(--hover)}
+.user-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));
+  display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:#fff;flex-shrink:0}
+.user-name{font-size:.8rem;font-weight:600}
+.user-role{font-size:.68rem;color:var(--muted)}
+
+/* MAIN */
+#main-content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:var(--th);background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 22px;gap:14px;flex-shrink:0}
+.topbar-title{font-size:1rem;font-weight:700;flex:1}
+.page-body{flex:1;overflow-y:auto;padding:22px}
+
+/* ── CARDS & STATS ───────────────────────────────── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;margin-bottom:22px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;
+  display:flex;align-items:center;gap:14px;transition:var(--t)}
+.stat-card:hover{border-color:var(--primary)}
+.stat-icon{width:46px;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0}
+.stat-icon.blue{background:rgba(59,130,246,.15);color:var(--primary)}
+.stat-icon.green{background:rgba(16,185,129,.15);color:var(--success)}
+.stat-icon.red{background:rgba(239,68,68,.15);color:var(--danger)}
+.stat-icon.orange{background:rgba(245,158,11,.15);color:var(--warning)}
+.stat-icon.purple{background:rgba(139,92,246,.15);color:var(--secondary)}
+.stat-icon.cyan{background:rgba(6,182,212,.15);color:var(--accent)}
+.stat-value{font-size:1.75rem;font-weight:800;line-height:1}
+.stat-label{font-size:.73rem;color:var(--muted);margin-top:3px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card-title{font-size:.88rem;font-weight:700;display:flex;align-items:center;gap:7px}
+.card-title i{color:var(--primary)}
+.card-body{padding:18px}
+
+/* ── TABLES ──────────────────────────────────────── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+thead th{background:rgba(255,255,255,.04);padding:10px 13px;text-align:left;
+  font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--text2);border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td{padding:11px 13px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+tbody tr:hover{background:var(--hover)}
+tbody tr:last-child td{border-bottom:none}
+.overdue-row{background:rgba(239,68,68,.07)!important}
+.low-stock-row td{color:var(--warning)}
+
+/* ── ASSET GRID (THUMBNAILS) ─────────────────────── */
+.asset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.asset-thumb{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:var(--t);cursor:pointer}
+.asset-thumb:hover{border-color:var(--primary);transform:translateY(-3px);box-shadow:0 8px 32px rgba(59,130,246,.2)}
+.at-img{width:100%;height:120px;background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(139,92,246,.1));
+  display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:var(--primary);overflow:hidden}
+.at-img img{width:100%;height:100%;object-fit:cover}
+.at-body{padding:12px}
+.at-id{font-size:.66rem;font-weight:700;color:var(--accent);font-family:monospace;margin-bottom:3px}
+.at-name{font-size:.86rem;font-weight:600;margin-bottom:3px;line-height:1.3}
+.at-lab{font-size:.73rem;color:var(--muted)}
+.at-footer{display:flex;align-items:center;justify-content:space-between;margin-top:9px}
+
+/* ── QR ──────────────────────────────────────────── */
+.qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:14px}
+.qr-card{background:#fff;border:1px solid #ddd;border-radius:var(--rs);padding:12px;text-align:center;color:#111}
+.qr-card canvas{display:block;margin:0 auto 7px}
+.qr-name{font-size:.7rem;font-weight:700;word-break:break-word}
+.qr-id{font-size:.63rem;color:#555;font-family:monospace}
+.qr-lab{font-size:.58rem;color:#777;margin-top:1px}
+
+/* ── SCANNER ─────────────────────────────────────── */
+#reader,#reader-return{width:100%!important;border-radius:var(--r)!important;overflow:hidden}
+.scan-result{margin-top:13px;padding:13px;border-radius:var(--rs);background:rgba(16,185,129,.1);
+  border:1px solid rgba(16,185,129,.3);color:var(--success);font-weight:600;font-size:.86rem}
+
+/* ── UPLOAD ──────────────────────────────────────── */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--r);padding:36px;text-align:center;cursor:pointer;transition:var(--t)}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--primary);background:rgba(59,130,246,.05)}
+.upload-zone i{font-size:2.3rem;color:var(--muted);margin-bottom:9px;display:block}
+.upload-zone p{color:var(--text2);font-size:.86rem}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:13px}
+.doc-thumb{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;transition:var(--t)}
+.doc-thumb:hover{border-color:var(--primary)}
+.doc-prev{width:100%;height:100px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;font-size:1.9rem;color:var(--muted)}
+.doc-prev img{width:100%;height:100%;object-fit:cover}
+.doc-info{padding:9px}
+.doc-name{font-size:.73rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-type{font-size:.63rem;color:var(--muted);margin-top:2px}
+
+/* ── TOOLBAR ─────────────────────────────────────── */
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.search-box{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);
+  border:1px solid var(--border);border-radius:var(--rs);padding:7px 13px;flex:1;min-width:190px}
+.search-box i{color:var(--muted)}
+.search-box input{background:transparent;border:none;color:var(--text);font-size:.875rem;outline:none;flex:1}
+.filter-select,.date-input{padding:8px 13px;background:rgba(255,255,255,.05);border:1px solid var(--border);
+  border-radius:var(--rs);color:var(--text);font-size:.875rem;outline:none;cursor:pointer}
+.filter-select option{background:var(--surface)}
+.date-input::-webkit-calendar-picker-indicator{filter:invert(1)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:600px){.form-row,.form-row-3{grid-template-columns:1fr}}
+.form-check{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem}
+.form-check input{width:15px;height:15px;cursor:pointer;accent-color:var(--primary)}
+
+/* ── MODAL ───────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+  z-index:1000;display:flex;align-items:center;justify-content:center;padding:18px;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--surface);border:1px solid var(--glass-b);border-radius:20px;
+  width:100%;max-width:540px;max-height:90vh;overflow-y:auto;animation:slideUp .25s ease}
+.modal-lg{max-width:780px}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;
+  justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1}
+.modal-title{font-size:.97rem;font-weight:700}
+.modal-close{width:30px;height:30px;border:none;background:rgba(255,255,255,.08);color:var(--text2);
+  border-radius:7px;font-size:.97rem;cursor:pointer;transition:var(--t)}
+.modal-close:hover{background:rgba(239,68,68,.2);color:var(--danger)}
+.modal-body{padding:22px}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:9px;
+  position:sticky;bottom:0;background:var(--surface)}
+
+/* ── LOADING & TOAST ─────────────────────────────── */
+#loading-overlay{position:fixed;inset:0;background:rgba(10,14,26,.85);z-index:9999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.spinner{width:38px;height:38px;border:3px solid var(--border);border-top-color:var(--primary);
+  border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:var(--text2);font-size:.875rem}
+#toast-container{position:fixed;bottom:22px;right:22px;z-index:9998;display:flex;flex-direction:column;gap:9px;pointer-events:none}
+.toast{min-width:270px;max-width:370px;padding:13px 16px;border-radius:11px;display:flex;align-items:center;
+  gap:11px;font-size:.875rem;font-weight:500;pointer-events:all;animation:toastIn .3s ease;box-shadow:var(--shadow)}
+@keyframes toastIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.toast-success{background:#064e3b;border:1px solid #10b981;color:#a7f3d0}
+.toast-error{background:#7f1d1d;border:1px solid #ef4444;color:#fca5a5}
+.toast-info{background:#1e3a5f;border:1px solid #3b82f6;color:#93c5fd}
+.toast-warning{background:#78350f;border:1px solid #f59e0b;color:#fde68a}
+
+/* ── REPORT HEADER ───────────────────────────────── */
+.report-header{display:flex;align-items:center;gap:22px;padding:18px;
+  background:linear-gradient(135deg,rgba(30,64,175,.15),rgba(139,92,246,.1));
+  border:1px solid var(--border);border-radius:var(--r);margin-bottom:18px}
+.report-header img{width:66px;height:66px;object-fit:contain;background:#fff;border-radius:9px;padding:3px}
+.rh-center{flex:1;text-align:center}
+.rh-college{font-family:'Poppins',sans-serif;font-size:1.05rem;font-weight:800}
+.rh-dept{font-size:.78rem;font-weight:600;color:var(--accent);margin-top:2px}
+.rh-sub{font-size:.72rem;color:var(--text2);margin-top:3px}
+
+/* ── MISC ────────────────────────────────────────── */
+.empty-state{text-align:center;padding:55px 18px;color:var(--muted)}
+.empty-state i{font-size:2.8rem;margin-bottom:13px;display:block}
+.empty-state p{font-size:.875rem}
+.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
+.text-muted{color:var(--muted)} .text-success{color:var(--success)} .text-danger{color:var(--danger)}
+.text-warning{color:var(--warning)} .text-primary{color:var(--primary)} .text-accent{color:var(--accent)}
+.fw-bold{font-weight:700} .font-mono{font-family:monospace}
+.w-100{width:100%} .d-flex{display:flex} .gap-8{gap:8px} .gap-12{gap:12px}
+.ms-auto{margin-left:auto} .mb-16{margin-bottom:16px} .hidden{display:none!important}
+.page-section{display:none} .page-section.active{display:block}
+
+/* ── PRINT STYLES ────────────────────────────────── */
+@media print{
+  #app-layout{display:none!important}
+  #print-area{display:block!important}
+}
+#print-area{display:none;padding:15mm;font-family:Arial,sans-serif;font-size:11px}
+.p-header{display:flex;align-items:center;gap:18px;margin-bottom:15px;padding-bottom:12px;border-bottom:2.5px solid #1e40af}
+.p-header img{width:66px;height:66px;object-fit:contain;background:#fff;border-radius:8px;border:1px solid #e5e7eb;padding:3px}
+.p-center{flex:1;text-align:center}
+.p-college{font-size:1.1em;font-weight:800;color:#1e3a8a}
+.p-dept{font-size:.85em;font-weight:600;color:#374151;margin-top:2px}
+.p-title{font-size:.76em;color:#6b7280;margin-top:3px}
+.p-qr-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+.p-qr-item{border:1px solid #ccc;border-radius:5px;padding:9px;text-align:center;background:#fff}
+.p-qr-item img{display:block;margin:0 auto 5px}
+.p-qr-id{font-size:.66rem;font-family:monospace;font-weight:700;color:#1e3a8a}
+.p-qr-name{font-size:.63rem;color:#374151;margin-top:2px;word-break:break-word}
+.p-qr-lab{font-size:.58rem;color:#6b7280;margin-top:1px}
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay" class="hidden">
+  <div class="spinner"></div>
+  <div class="loading-text">Loading...</div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<!-- PRINT AREA -->
+<div id="print-area"></div>
+
+<!-- ══════════════════════════════════════════════════
+     LOGIN PAGE
+══════════════════════════════════════════════════ -->
+<div id="login-page">
+  <div class="login-box">
+    <div class="login-logo-row">
+      <img id="login-logo" src="https://placehold.co/52x52/1e3a8a/ffffff?text=DB" alt="Logo">
+      <div class="ci">
+        <h2>Don Bosco Polytechnic College</h2>
+        <span>Department of Mechanical Engineering</span>
+      </div>
+    </div>
+
+    <!-- GAS URL setup (shown only if not configured) -->
+    <div class="gas-url-setup" id="gas-url-setup">
+      <p>⚙️ First-time setup: Paste your Google Apps Script Web App URL below.</p>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="gas-url-input" class="form-control" placeholder="https://script.google.com/macros/s/...">
+        <button class="btn btn-primary btn-sm" onclick="saveGasUrl()">Save</button>
+      </div>
+      <p style="margin-top:8px;font-size:.7rem;color:var(--muted)">This URL is saved in your browser. See README for deployment instructions.</p>
+    </div>
+
+    <div class="login-title">Lab Management System</div>
+    <div class="login-sub">Sign in to manage lab assets &amp; inventory</div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="login-username" class="form-control" placeholder="Enter username" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" class="form-control" placeholder="Enter password">
+    </div>
+    <button class="btn btn-primary btn-lg" onclick="doLogin()"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+    <div style="margin-top:14px;font-size:.72rem;color:var(--muted);text-align:center">Default: admin / admin123 — Run <code>setup()</code> in GAS editor once</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     APP LAYOUT
+══════════════════════════════════════════════════ -->
+<div id="app-layout" class="hidden">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="sb-header">
+      <div class="sb-logo-row">
+        <div id="sb-logo-ph" class="sb-logo-ph"><i class="fas fa-flask"></i></div>
+        <img id="sb-logo" class="sb-logo hidden" src="" alt="Logo">
+        <div>
+          <div class="sb-college" id="sb-college">Don Bosco Polytechnic College</div>
+          <div class="sb-dept">Dept. of Mech. Engg.</div>
+        </div>
+      </div>
+    </div>
+    <div class="sb-nav">
+      <div class="nav-sec">Main</div>
+      <div class="nav-item active" data-page="dashboard" onclick="nav('dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</div>
+      <div class="nav-sec">Assets</div>
+      <div class="nav-item" data-page="assets" onclick="nav('assets')"><i class="fas fa-boxes"></i> Asset Catalog</div>
+      <div class="nav-item" data-page="checkout" onclick="nav('checkout')"><i class="fas fa-exchange-alt"></i> Check-Out / Return <span class="nav-badge hidden" id="nav-badge-out"></span></div>
+      <div class="nav-item" data-page="register" onclick="nav('register')"><i class="fas fa-clipboard-list"></i> In/Out Register</div>
+      <div class="nav-item" data-page="qr" onclick="nav('qr')"><i class="fas fa-qrcode"></i> QR Generator</div>
+      <div class="nav-sec">Operations</div>
+      <div class="nav-item" data-page="maintenance" onclick="nav('maintenance')"><i class="fas fa-tools"></i> Maintenance</div>
+      <div class="nav-item" data-page="consumables" onclick="nav('consumables')"><i class="fas fa-box-open"></i> Consumables / Stock</div>
+      <div class="nav-item" data-page="documents" onclick="nav('documents')"><i class="fas fa-file-upload"></i> Documents</div>
+      <div class="nav-sec">Reports &amp; Config</div>
+      <div class="nav-item" data-page="reports" onclick="nav('reports')"><i class="fas fa-print"></i> Reports</div>
+      <div class="nav-item" data-page="staff" onclick="nav('staff')"><i class="fas fa-users"></i> Staff</div>
+      <div class="nav-item" data-page="settings" onclick="nav('settings')"><i class="fas fa-cog"></i> Settings</div>
+    </div>
+    <div class="sb-footer">
+      <div class="user-card">
+        <div class="user-av" id="user-av">AD</div>
+        <div><div class="user-name" id="user-name">Admin</div><div class="user-role" id="user-role">Administrator</div></div>
+        <button class="btn btn-secondary btn-icon ms-auto" onclick="doLogout()" title="Logout" style="border:none;background:transparent;color:var(--danger);font-size:.95rem"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <div id="main-content">
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">Dashboard</div>
+      <div style="display:flex;gap:9px">
+        <button class="btn btn-secondary btn-sm" onclick="loadPage(APP.page)"><i class="fas fa-sync-alt"></i></button>
+      </div>
+    </div>
+    <div class="page-body">
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard" class="page-section active">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-boxes"></i></div><div><div class="stat-value" id="d-total">0</div><div class="stat-label">Total Assets</div></div></div>
+          <div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div><div class="stat-value" id="d-avail">0</div><div class="stat-label">Available</div></div></div>
+          <div class="stat-card"><div class="stat-icon red"><i class="fas fa-sign-out-alt"></i></div><div><div class="stat-value" id="d-out">0</div><div class="stat-label">Checked Out</div></div></div>
+          <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-tools"></i></div><div><div class="stat-value" id="d-maint">0</div><div class="stat-label">Maintenance</div></div></div>
+          <div class="stat-card"><div class="stat-icon cyan"><i class="fas fa-exclamation-triangle"></i></div><div><div class="stat-value" id="d-low">0</div><div class="stat-label">Low Stock</div></div></div>
+          <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-ticket-alt"></i></div><div><div class="stat-value" id="d-tickets">0</div><div class="stat-label">Open Tickets</div></div></div>
+        </div>
+        <div class="grid-2">
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-chart-donut"></i> Asset Status</div></div><div class="card-body" style="height:250px;display:flex;align-items:center;justify-content:center"><canvas id="dash-chart"></canvas></div></div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-history"></i> Recently Checked Out</div><button class="btn btn-sm btn-secondary" onclick="nav('register')">View All</button></div><div class="table-wrap"><table><thead><tr><th>Asset ID</th><th>Asset</th><th>Requested By</th><th>Date</th><th>Status</th></tr></thead><tbody id="d-recent"><tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px">Loading…</td></tr></tbody></table></div></div>
+        </div>
+      </div>
+
+      <!-- ASSETS -->
+      <div id="page-assets" class="page-section">
+        <div class="toolbar">
+          <div class="search-box"><i class="fas fa-search"></i><input type="text" id="asset-q" placeholder="Search by name, ID, serial…" oninput="filterAssets()"></div>
+          <select id="asset-sf" class="filter-select" onchange="filterAssets()"><option value="All">All Status</option><option>Available</option><option>Checked Out</option><option>Under Maintenance</option><option>Condemned</option></select>
+          <select id="asset-lf" class="filter-select" onchange="filterAssets()"><option value="All">All Labs</option></select>
+          <button class="btn btn-primary" onclick="openAddAsset()"><i class="fas fa-plus"></i> Add Asset</button>
+        </div>
+        <div id="asset-grid" class="asset-grid"><div class="empty-state" style="grid-column:1/-1"><div class="spinner" style="margin:0 auto"></div></div></div>
+      </div>
+
+      <!-- CHECKOUT / RETURN -->
+      <div id="page-checkout" class="page-section">
+        <div class="grid-2" style="align-items:start">
+          <!-- CHECKOUT -->
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-sign-out-alt" style="color:var(--danger)"></i> Asset Check-Out</div></div>
+          <div class="card-body">
+            <p style="font-size:.84rem;color:var(--text2);margin-bottom:14px">Scan QR code or enter Asset ID to check out.</p>
+            <div style="display:flex;gap:9px;margin-bottom:13px">
+              <button class="btn btn-primary" style="flex:1" onclick="startScan('checkout')"><i class="fas fa-camera"></i> Scan QR</button>
+            </div>
+            <div id="scanner-co-wrap" class="hidden" style="margin-bottom:13px">
+              <div id="reader"></div>
+              <button class="btn btn-secondary btn-sm w-100" style="margin-top:7px" onclick="stopScanner();document.getElementById('scanner-co-wrap').classList.add('hidden')"><i class="fas fa-times"></i> Cancel</button>
+            </div>
+            <div style="display:flex;gap:7px;margin-bottom:13px">
+              <input type="text" id="co-manual" class="form-control" placeholder="Or type Asset ID (DB-ME-0001)">
+              <button class="btn btn-secondary" onclick="manualLookup('co')"><i class="fas fa-search"></i></button>
+            </div>
+            <div id="co-result"></div>
+            <input type="hidden" id="co-aid">
+            <div id="co-form" class="hidden">
+              <hr class="divider">
+              <div class="form-group"><label>Asset</label><input type="text" id="co-aname" class="form-control" readonly style="opacity:.7"></div>
+              <div class="form-group"><label>Requested By *</label><select id="co-req" class="form-control"></select></div>
+              <div class="form-group"><label>Issued By *</label><select id="co-iss" class="form-control"></select></div>
+              <div class="form-group"><label>Approved By *</label><select id="co-app" class="form-control"></select></div>
+              <div class="form-group"><label>Purpose</label><input type="text" id="co-purpose" class="form-control" placeholder="Purpose / reason"></div>
+              <div class="form-group"><label>Expected Return Date</label><input type="date" id="co-exp" class="form-control date-input"></div>
+              <div class="form-group"><label>Notes</label><textarea id="co-notes" class="form-control" rows="2"></textarea></div>
+              <button class="btn btn-success w-100" onclick="submitCheckout()"><i class="fas fa-check"></i> Confirm Check-Out</button>
+            </div>
+          </div></div>
+
+          <!-- RETURN -->
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-undo" style="color:var(--success)"></i> Asset Return</div></div>
+          <div class="card-body">
+            <p style="font-size:.84rem;color:var(--text2);margin-bottom:14px">Scan QR to return. Status updates automatically.</p>
+            <div style="display:flex;gap:9px;margin-bottom:13px">
+              <button class="btn btn-success" style="flex:1" onclick="startScan('return')"><i class="fas fa-camera"></i> Scan QR to Return</button>
+            </div>
+            <div id="scanner-rt-wrap" class="hidden" style="margin-bottom:13px">
+              <div id="reader-return"></div>
+              <button class="btn btn-secondary btn-sm w-100" style="margin-top:7px" onclick="stopScanner();document.getElementById('scanner-rt-wrap').classList.add('hidden')"><i class="fas fa-times"></i> Cancel</button>
+            </div>
+            <div style="display:flex;gap:7px;margin-bottom:13px">
+              <input type="text" id="rt-manual" class="form-control" placeholder="Or type Asset ID">
+              <button class="btn btn-secondary" onclick="manualLookup('rt')"><i class="fas fa-search"></i></button>
+            </div>
+            <div id="rt-result"></div>
+            <input type="hidden" id="rt-aid">
+            <div id="rt-form" class="hidden">
+              <hr class="divider">
+              <div class="form-group"><label>Asset Being Returned</label><div class="fw-bold text-success" id="rt-aname" style="padding:9px;background:rgba(16,185,129,.08);border-radius:8px;border:1px solid rgba(16,185,129,.2)"></div></div>
+              <div class="form-group"><label>Notes (Condition)</label><textarea id="rt-notes" class="form-control" rows="3" placeholder="Condition, any damage…"></textarea></div>
+              <button class="btn btn-success w-100" onclick="submitReturn()"><i class="fas fa-undo"></i> Confirm Return</button>
+            </div>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- IN/OUT REGISTER -->
+      <div id="page-register" class="page-section">
+        <div class="toolbar">
+          <label style="font-size:.8rem;color:var(--text2)">From:</label><input type="date" id="reg-from" class="date-input">
+          <label style="font-size:.8rem;color:var(--text2)">To:</label><input type="date" id="reg-to" class="date-input">
+          <select id="reg-status" class="filter-select"><option value="All">All</option><option value="OUT">Currently Out</option><option value="RETURNED">Returned</option></select>
+          <button class="btn btn-primary" onclick="loadRegister()"><i class="fas fa-search"></i> Filter</button>
+          <button class="btn btn-secondary" onclick="printRegister()"><i class="fas fa-print"></i> Print</button>
+        </div>
+        <div class="card"><div class="table-wrap"><table id="reg-table">
+          <thead><tr><th>#</th><th>Asset ID</th><th>Asset Name</th><th>Requested By</th><th>Issued By</th><th>Approved By</th><th>Checkout Date</th><th>Return Date</th><th>Status</th></tr></thead>
+          <tbody id="reg-tbody"><tr><td colspan="9" class="text-muted" style="text-align:center;padding:28px">Select dates and click Filter</td></tr></tbody>
+        </table></div></div>
+      </div>
+
+      <!-- QR GENERATOR -->
+      <div id="page-qr" class="page-section">
+        <div class="grid-2" style="align-items:start">
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-check-square"></i> Select Assets</div>
+            <div style="display:flex;gap:7px"><button class="btn btn-sm btn-secondary" onclick="toggleAllQR(true)">All</button><button class="btn btn-sm btn-secondary" onclick="toggleAllQR(false)">None</button></div></div>
+            <div class="card-body"><div id="qr-checklist" style="display:flex;flex-direction:column;gap:5px;max-height:420px;overflow-y:auto"></div>
+            <button class="btn btn-primary w-100" style="margin-top:13px" onclick="generateQR()"><i class="fas fa-qrcode"></i> Generate QR Codes</button></div>
+          </div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-th"></i> Preview</div>
+            <div id="qr-actions" class="hidden"><button class="btn btn-sm btn-primary" onclick="printQR()"><i class="fas fa-print"></i> Print A4</button></div></div>
+            <div class="card-body"><div id="qr-preview" class="qr-grid"><div class="empty-state"><i class="fas fa-qrcode"></i><p>Select assets and generate</p></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAINTENANCE -->
+      <div id="page-maintenance" class="page-section">
+        <div class="toolbar">
+          <div class="search-box" style="flex:1"><i class="fas fa-search"></i><input type="text" placeholder="Search tickets…" oninput="const q=this.value.toLowerCase();document.querySelectorAll('#maint-tbody tr').forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q)?'':'none'})"></div>
+          <button class="btn btn-primary" onclick="openMaintModal('','')"><i class="fas fa-plus"></i> New Ticket</button>
+          <button class="btn btn-secondary" onclick="printReport('maintenance')"><i class="fas fa-print"></i> Report</button>
+        </div>
+        <div class="card"><div class="table-wrap"><table>
+          <thead><tr><th>Ticket ID</th><th>Asset ID</th><th>Asset</th><th>Issue</th><th>Priority</th><th>Assigned To</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+          <tbody id="maint-tbody"><tr><td colspan="9" class="text-muted" style="text-align:center;padding:28px">Loading…</td></tr></tbody>
+        </table></div></div>
+      </div>
+
+      <!-- CONSUMABLES -->
+      <div id="page-consumables" class="page-section">
+        <div class="toolbar">
+          <div class="search-box" style="flex:1"><i class="fas fa-search"></i><input type="text" placeholder="Search items…" oninput="const q=this.value.toLowerCase();document.querySelectorAll('#cons-tbody tr').forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q)?'':'none'})"></div>
+          <button class="btn btn-primary" onclick="openModal('cons-modal')"><i class="fas fa-plus"></i> Add Item</button>
+          <button class="btn btn-secondary" onclick="printReport('inventory')"><i class="fas fa-print"></i> Report</button>
+        </div>
+        <div class="card"><div class="table-wrap"><table>
+          <thead><tr><th>Item ID</th><th>Name</th><th>Category</th><th>Unit</th><th>Stock</th><th>Min</th><th>Location</th><th>Actions</th></tr></thead>
+          <tbody id="cons-tbody"><tr><td colspan="8" class="text-muted" style="text-align:center;padding:28px">Loading…</td></tr></tbody>
+        </table></div></div>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div id="page-documents" class="page-section">
+        <div class="toolbar">
+          <select class="filter-select" onchange="loadDocs(this.value)"><option value="All">All Types</option><option>Bill/Invoice</option><option>Delivery Challan</option><option>Inventory List</option><option>Procurement List</option><option>Stock List</option><option>Inspection Report</option><option>Other</option></select>
+          <button class="btn btn-primary" onclick="openModal('upload-modal')"><i class="fas fa-upload"></i> Upload Document</button>
+        </div>
+        <div id="doc-grid" class="doc-grid"><div class="empty-state" style="grid-column:1/-1"><div class="spinner" style="margin:0 auto"></div></div></div>
+      </div>
+
+      <!-- REPORTS -->
+      <div id="page-reports" class="page-section">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px">
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-boxes"></i> Asset Register</div></div><div class="card-body"><p style="font-size:.83rem;color:var(--text2);margin-bottom:14px">Complete list of all assets with status and details.</p><button class="btn btn-primary w-100" onclick="printReport('assets')"><i class="fas fa-print"></i> Print Asset Register</button></div></div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-exchange-alt"></i> In/Out Report</div></div><div class="card-body">
+            <div class="form-row mb-16"><div class="form-group" style="margin-bottom:0"><label>From</label><input type="date" id="rep-from" class="form-control date-input"></div><div class="form-group" style="margin-bottom:0"><label>To</label><input type="date" id="rep-to" class="form-control date-input"></div></div>
+            <button class="btn btn-primary w-100" onclick="printReport('inout')"><i class="fas fa-print"></i> Print In/Out Report</button></div></div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-sign-out-alt"></i> Currently Checked Out</div></div><div class="card-body"><p style="font-size:.83rem;color:var(--text2);margin-bottom:14px">All assets not yet returned.</p><button class="btn btn-danger w-100" onclick="printReport('checkedout')"><i class="fas fa-print"></i> Print Checked-Out List</button></div></div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-tools"></i> Maintenance Report</div></div><div class="card-body"><p style="font-size:.83rem;color:var(--text2);margin-bottom:14px">All maintenance tickets with status and costs.</p><button class="btn btn-warning w-100" onclick="printReport('maintenance')"><i class="fas fa-print"></i> Print Maintenance Report</button></div></div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-box-open"></i> Inventory Report</div></div><div class="card-body"><p style="font-size:.83rem;color:var(--text2);margin-bottom:14px">Consumables and stock with low-stock highlights.</p><button class="btn btn-success w-100" onclick="printReport('inventory')"><i class="fas fa-print"></i> Print Inventory Report</button></div></div>
+        </div>
+      </div>
+
+      <!-- STAFF -->
+      <div id="page-staff" class="page-section">
+        <div class="toolbar"><button class="btn btn-primary" onclick="openModal('staff-modal')"><i class="fas fa-user-plus"></i> Add Staff</button></div>
+        <div class="card"><div class="table-wrap"><table>
+          <thead><tr><th>#</th><th>Name</th><th>Designation</th><th>Department</th><th>Phone</th><th>Action</th></tr></thead>
+          <tbody id="staff-tbody"><tr><td colspan="6" class="text-muted" style="text-align:center;padding:20px">Loading…</td></tr></tbody>
+        </table></div></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="page-settings" class="page-section">
+        <div style="max-width:660px;display:flex;flex-direction:column;gap:18px">
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-university"></i> College Information</div></div><div class="card-body">
+            <div class="form-group"><label>College Name</label><input type="text" id="set-college" class="form-control"></div>
+            <div class="form-group"><label>Department</label><input type="text" id="set-dept" class="form-control"></div>
+            <div class="form-group"><label>Address</label><input type="text" id="set-addr" class="form-control"></div>
+            <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Save Info</button>
+          </div></div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-image"></i> College Logo &amp; Founder Photo</div></div><div class="card-body">
+            <div class="form-row">
+              <div><label style="font-size:.78rem;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:8px">College Logo</label>
+                <div style="display:flex;align-items:center;gap:13px;flex-wrap:wrap">
+                  <img id="set-logo-prev" src="https://placehold.co/80x80/1e3a8a/fff?text=LOGO" style="width:78px;height:78px;border-radius:9px;object-fit:contain;background:#fff;padding:3px;border:1px solid var(--border)">
+                  <div><input type="file" id="logo-file" accept="image/*" style="display:none" onchange="uploadFile(this,'logo_url','set-logo-prev')">
+                  <button class="btn btn-secondary btn-sm" onclick="document.getElementById('logo-file').click()"><i class="fas fa-upload"></i> Upload Logo</button>
+                  <div style="font-size:.7rem;color:var(--muted);margin-top:5px">JPG/PNG max 2MB</div></div>
+                </div>
+              </div>
+              <div><label style="font-size:.78rem;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:8px">Founder Photo</label>
+                <div style="display:flex;align-items:center;gap:13px;flex-wrap:wrap">
+                  <img id="set-found-prev" src="https://placehold.co/80x80/4b5563/fff?text=FOUNDER" style="width:78px;height:78px;border-radius:9px;object-fit:contain;background:#fff;padding:3px;border:1px solid var(--border)">
+                  <div><input type="file" id="found-file" accept="image/*" style="display:none" onchange="uploadFile(this,'founder_url','set-found-prev')">
+                  <button class="btn btn-secondary btn-sm" onclick="document.getElementById('found-file').click()"><i class="fas fa-upload"></i> Upload Founder</button>
+                  <div style="font-size:.7rem;color:var(--muted);margin-top:5px">Shown in all reports</div></div>
+                </div>
+              </div>
+            </div>
+          </div></div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-link"></i> GAS API URL</div></div><div class="card-body">
+            <div class="form-group"><label>Google Apps Script Web App URL</label><input type="text" id="set-gas-url" class="form-control" placeholder="https://script.google.com/macros/s/…"></div>
+            <button class="btn btn-primary" onclick="saveGasUrlFromSettings()"><i class="fas fa-save"></i> Update URL</button>
+          </div></div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-database"></i> Database Setup</div></div><div class="card-body">
+            <p style="font-size:.84rem;color:var(--text2);margin-bottom:13px">Run once to create all Google Sheets. <strong>Only run once.</strong></p>
+            <button class="btn btn-warning" onclick="runSetup()"><i class="fas fa-cogs"></i> Run Initial Setup</button>
+          </div></div>
+        </div>
+      </div>
+
+    </div><!-- end page-body -->
+  </div><!-- end main-content -->
+</div><!-- end app-layout -->
+
+<!-- ══════════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════════ -->
+
+<!-- ASSET DETAIL MODAL -->
+<div id="asset-detail-modal" class="modal-overlay hidden">
+  <div class="modal modal-lg"><div class="modal-header"><div class="modal-title"><i class="fas fa-cube" style="color:var(--primary);margin-right:7px"></i> Asset Details</div><button class="modal-close" onclick="closeModal('asset-detail-modal')">&times;</button></div>
+  <div class="modal-body" id="asset-detail-body"></div></div>
+</div>
+
+<!-- ADD/EDIT ASSET MODAL -->
+<div id="asset-modal" class="modal-overlay hidden">
+  <div class="modal"><div class="modal-header"><div class="modal-title" id="asset-modal-title"><i class="fas fa-plus" style="color:var(--primary);margin-right:7px"></i> Add Asset</div><button class="modal-close" onclick="closeModal('asset-modal')">&times;</button></div>
+  <div class="modal-body">
+    <input type="hidden" id="af-id">
+    <div class="form-row">
+      <div class="form-group"><label>Asset Name *</label><input type="text" id="af-name" class="form-control" placeholder="e.g. Stopwatch, Lathe Machine"></div>
+      <div class="form-group"><label>Category *</label><select id="af-cat" class="form-control"></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Sub-Category</label><input type="text" id="af-subcat" class="form-control" placeholder="e.g. Digital, CNC"></div>
+      <div class="form-group"><label>Lab / Location *</label><select id="af-lab" class="form-control"></select></div>
+    </div>
+    <!-- QUANTITY field: only shown on Add (not Edit) -->
+    <div id="af-qty-row" class="form-group">
+      <label>Quantity (for bulk add) <span style="font-size:.75rem;color:var(--text2);text-transform:none;letter-spacing:0">— creates individual records per unit</span></label>
+      <input type="number" id="af-qty" class="form-control" value="1" min="1" max="500" placeholder="1">
+      <div style="font-size:.72rem;color:var(--muted);margin-top:4px">If qty=10 → creates Stopwatch #1 … Stopwatch #10, each with own QR &amp; ID</div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Serial Number</label><input type="text" id="af-serial" class="form-control" placeholder="Tag / serial no."></div>
+      <div class="form-group"><label>Purchase Date</label><input type="date" id="af-date" class="form-control date-input"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Cost (₹)</label><input type="number" id="af-cost" class="form-control" placeholder="0"></div>
+      <div class="form-group"><label>Vendor</label><input type="text" id="af-vendor" class="form-control" placeholder="Supplier name"></div>
+    </div>
+    <div class="form-group"><label>Warranty</label><input type="text" id="af-warranty" class="form-control" placeholder="e.g. 2 years, expires 2026"></div>
+    <div class="form-group"><label>Description</label><textarea id="af-desc" class="form-control" rows="2" placeholder="Optional details…"></textarea></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('asset-modal')">Cancel</button><button class="btn btn-primary" onclick="saveAsset()"><i class="fas fa-save"></i> Save Asset</button></div></div>
+</div>
+
+<!-- QR SINGLE MODAL -->
+<div id="qr-single-modal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:370px"><div class="modal-header"><div class="modal-title"><i class="fas fa-qrcode" style="color:var(--primary);margin-right:7px"></i> QR Code</div><button class="modal-close" onclick="closeModal('qr-single-modal')">&times;</button></div>
+  <div class="modal-body" style="text-align:center">
+    <div id="qr-single-name" style="font-weight:700;margin-bottom:13px"></div>
+    <div id="qr-single-canvas" style="display:flex;justify-content:center;margin-bottom:11px"></div>
+    <div id="qr-single-info" style="margin-bottom:14px"></div>
+    <button class="btn btn-primary" onclick="downloadQRSingle()"><i class="fas fa-download"></i> Download PNG</button>
+  </div></div>
+</div>
+
+<!-- MAINTENANCE MODAL -->
+<div id="maint-modal" class="modal-overlay hidden">
+  <div class="modal"><div class="modal-header"><div class="modal-title"><i class="fas fa-tools" style="color:var(--warning);margin-right:7px"></i> Raise Maintenance Ticket</div><button class="modal-close" onclick="closeModal('maint-modal')">&times;</button></div>
+  <div class="modal-body">
+    <input type="hidden" id="maint-aid">
+    <div class="form-row">
+      <div class="form-group"><label>Asset Name</label><input type="text" id="maint-aname" class="form-control" placeholder="Asset name"></div>
+      <div class="form-group"><label>Priority *</label><select id="maint-pri" class="form-control"><option value="">-- Select --</option><option value="High">🔴 High</option><option value="Medium">🟡 Medium</option><option value="Low">🟢 Low</option></select></div>
+    </div>
+    <div class="form-group"><label>Issue Description *</label><textarea id="maint-issue" class="form-control" rows="3" placeholder="Describe the problem…"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Reported By *</label><select id="maint-rep" class="form-control"></select></div>
+      <div class="form-group"><label>Assigned To *</label><select id="maint-asgn" class="form-control"></select></div>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('maint-modal')">Cancel</button><button class="btn btn-warning" onclick="saveMaint()"><i class="fas fa-ticket-alt"></i> Raise Ticket</button></div></div>
+</div>
+
+<!-- ADD CONSUMABLE MODAL -->
+<div id="cons-modal" class="modal-overlay hidden">
+  <div class="modal"><div class="modal-header"><div class="modal-title"><i class="fas fa-plus-circle" style="color:var(--success);margin-right:7px"></i> Add Consumable</div><button class="modal-close" onclick="closeModal('cons-modal')">&times;</button></div>
+  <div class="modal-body">
+    <div class="form-row"><div class="form-group"><label>Item Name *</label><input type="text" id="ci-name" class="form-control" placeholder="e.g. Cutting Oil"></div><div class="form-group"><label>Category *</label><select id="ci-cat" class="form-control"></select></div></div>
+    <div class="form-row"><div class="form-group"><label>Unit *</label><input type="text" id="ci-unit" class="form-control" placeholder="Nos / Litre / Kg"></div><div class="form-group"><label>Current Stock</label><input type="number" id="ci-curr" class="form-control" placeholder="0" min="0"></div></div>
+    <div class="form-row"><div class="form-group"><label>Min Stock (Alert Level)</label><input type="number" id="ci-min" class="form-control" placeholder="5" min="0"></div><div class="form-group"><label>Location</label><input type="text" id="ci-loc" class="form-control" placeholder="Store Shelf A3"></div></div>
+    <div class="form-group"><label>Description</label><textarea id="ci-desc" class="form-control" rows="2" placeholder="Optional…"></textarea></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('cons-modal')">Cancel</button><button class="btn btn-success" onclick="saveConsumable()"><i class="fas fa-save"></i> Add Item</button></div></div>
+</div>
+
+<!-- STOCK TRANSACTION MODAL -->
+<div id="stock-modal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:410px"><div class="modal-header"><div class="modal-title" id="stock-modal-title">Stock Transaction</div><button class="modal-close" onclick="closeModal('stock-modal')">&times;</button></div>
+  <div class="modal-body">
+    <input type="hidden" id="sm-iid"><input type="hidden" id="sm-type">
+    <div class="form-group"><label>Item</label><div id="sm-name" class="fw-bold text-accent" style="padding:9px;background:rgba(59,130,246,.08);border-radius:7px"></div></div>
+    <div class="form-group"><label>Quantity *</label><input type="number" id="sm-qty" class="form-control" placeholder="Enter quantity" min="1"></div>
+    <div class="form-group"><label>Issued To</label><select id="sm-to" class="form-control"></select></div>
+    <div class="form-group"><label>Notes</label><textarea id="sm-notes" class="form-control" rows="2" placeholder="Purpose, reference…"></textarea></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('stock-modal')">Cancel</button><button class="btn btn-primary" onclick="submitStock()"><i class="fas fa-check"></i> Submit</button></div></div>
+</div>
+
+<!-- STOCK HISTORY MODAL -->
+<div id="hist-modal" class="modal-overlay hidden">
+  <div class="modal modal-lg"><div class="modal-header"><div class="modal-title"><i class="fas fa-history" style="color:var(--accent);margin-right:7px"></i> Stock History — <span id="hist-name"></span></div><button class="modal-close" onclick="closeModal('hist-modal')">&times;</button></div>
+  <div class="modal-body"><div class="table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Qty</th><th>Balance</th><th>Issued To</th><th>Notes</th></tr></thead><tbody id="hist-tbody"></tbody></table></div></div></div>
+</div>
+
+<!-- UPLOAD DOCUMENT MODAL -->
+<div id="upload-modal" class="modal-overlay hidden">
+  <div class="modal"><div class="modal-header"><div class="modal-title"><i class="fas fa-upload" style="color:var(--primary);margin-right:7px"></i> Upload Document</div><button class="modal-close" onclick="closeModal('upload-modal')">&times;</button></div>
+  <div class="modal-body">
+    <div class="upload-zone" id="upload-zone"><i class="fas fa-cloud-upload-alt"></i><p>Click to browse or drag &amp; drop</p><p style="font-size:.73rem;color:var(--muted);margin-top:5px">PDF, JPG, PNG, XLSX, DOCX</p></div>
+    <input type="file" id="upload-file" style="display:none" accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls,.docx,.doc,.csv">
+    <div id="upload-fname" style="margin-top:9px;font-size:.8rem;color:var(--muted)"></div>
+    <div class="form-group" style="margin-top:13px"><label>Document Type *</label><select id="upload-type" class="form-control"><option value="">-- Select Type --</option><option>Bill/Invoice</option><option>Delivery Challan</option><option>Inventory List</option><option>Procurement List</option><option>Stock List</option><option>Inspection Report</option><option>Other</option></select></div>
+    <div class="form-group"><label>Notes</label><input type="text" id="upload-notes" class="form-control" placeholder="Invoice no., supplier, remarks…"></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('upload-modal')">Cancel</button><button class="btn btn-primary" onclick="submitUpload()"><i class="fas fa-upload"></i> Upload to Drive</button></div></div>
+</div>
+
+<!-- STAFF MODAL -->
+<div id="staff-modal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:430px"><div class="modal-header"><div class="modal-title"><i class="fas fa-user-plus" style="color:var(--primary);margin-right:7px"></i> Add Staff Member</div><button class="modal-close" onclick="closeModal('staff-modal')">&times;</button></div>
+  <div class="modal-body">
+    <div class="form-group"><label>Full Name *</label><input type="text" id="st-name" class="form-control" placeholder="e.g. Mr. A. Kumar"></div>
+    <div class="form-group"><label>Designation *</label><input type="text" id="st-desig" class="form-control" placeholder="e.g. Lab Technician"></div>
+    <div class="form-group"><label>Department</label><input type="text" id="st-dept" class="form-control" value="Mechanical Engineering"></div>
+    <div class="form-group"><label>Phone</label><input type="tel" id="st-phone" class="form-control" placeholder="10-digit mobile number"></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('staff-modal')">Cancel</button><button class="btn btn-primary" onclick="saveStaff()"><i class="fas fa-save"></i> Add Staff</button></div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     EXTERNAL LIBRARIES
+══════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<!-- ══════════════════════════════════════════════════
+     APPLICATION SCRIPT
+══════════════════════════════════════════════════ -->
+<script>
+'use strict';
+// ── CONFIG — paste your GAS URL here OR enter it on first login ──
+let GAS_URL = localStorage.getItem('gasUrl') || '';
+
+const LABS = ['Workshop Lab','Fluid Mechanics Lab','Metrology & Quality Lab','CAD/CAM Lab','IC Engine Lab','Heat Transfer Lab','Dynamics of Machinery Lab','Strength of Materials Lab','Production Technology Lab','Computer Lab','Common Store'];
+const CATS = ['Machine Tools','Hand Tools','Measuring Instruments','Power Tools','Welding Equipment','Hydraulic Equipment','Thermal Equipment','Pneumatic Equipment','Safety Equipment','Furniture & Fixtures','Electronic Equipment','Computer Hardware','Other'];
+const CONS_CATS = ['Cutting Tools','Abrasives','Lubricants & Oils','Welding Consumables','Electrical Items','Hardware','Raw Material','Safety Items','Stationery','Other'];
+
+const APP = { user:null, settings:{}, staff:[], assets:[], page:'dashboard', scanner:null };
+
+// ── API ───────────────────────────────────────────
+async function api(fn, ...args) {
+  if (!GAS_URL) { toast('GAS URL not set. Go to Settings.','error'); return {success:false,message:'No GAS URL'}; }
+  try {
+    const res = await fetch(GAS_URL, {
+      method:'POST',
+      body: JSON.stringify({fn, args}),
+      headers:{'Content-Type':'text/plain;charset=utf-8'}
+    });
+    return await res.json();
+  } catch(e) {
+    return {success:false, message:'Network error: '+e.message};
+  }
+}
+
+// ── GAS URL SETUP ─────────────────────────────────
+function saveGasUrl() {
+  const url = document.getElementById('gas-url-input').value.trim();
+  if (!url.startsWith('https://script.google.com')) { toast('Invalid GAS URL','error'); return; }
+  GAS_URL = url;
+  localStorage.setItem('gasUrl', url);
+  document.getElementById('gas-url-setup').classList.add('hidden');
+  toast('GAS URL saved!','success');
+}
+function saveGasUrlFromSettings() {
+  const url = document.getElementById('set-gas-url').value.trim();
+  if (!url) { toast('Enter a URL','warning'); return; }
+  GAS_URL = url;
+  localStorage.setItem('gasUrl', url);
+  toast('URL updated!','success');
+}
+
+// ── UTILS ─────────────────────────────────────────
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmtDate = d => { try { return d ? new Date(d).toLocaleDateString('en-IN') : '—'; } catch(e){ return d||'—'; } };
+
+function loading(msg='Loading…') { document.querySelector('.loading-text').textContent=msg; document.getElementById('loading-overlay').classList.remove('hidden'); }
+function doneLoading() { document.getElementById('loading-overlay').classList.add('hidden'); }
+
+function toast(msg, type='info') {
+  const icons = {success:'fa-check-circle',error:'fa-times-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle'};
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.innerHTML = `<i class="fas ${icons[type]}"></i><span>${esc(msg)}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(()=>{ el.style.cssText='opacity:0;transform:translateX(100%);transition:all .3s'; setTimeout(()=>el.remove(),300); }, 3500);
+}
+
+function badge(status) {
+  const m = {'Available':'badge-success','Checked Out':'badge-danger','Under Maintenance':'badge-warning','Condemned':'badge-secondary','OUT':'badge-danger','RETURNED':'badge-success','Open':'badge-danger','In Progress':'badge-warning','Resolved':'badge-success'};
+  return `<span class="badge ${m[status]||'badge-secondary'}">${esc(status)}</span>`;
+}
+
+function catIcon(cat) {
+  const m={'Machine Tools':'fa-cog','Hand Tools':'fa-wrench','Measuring Instruments':'fa-ruler','Power Tools':'fa-bolt','Welding Equipment':'fa-fire','Hydraulic Equipment':'fa-tint','Thermal Equipment':'fa-thermometer-half','Pneumatic Equipment':'fa-wind','Safety Equipment':'fa-hard-hat','Computer Hardware':'fa-desktop','Electronic Equipment':'fa-microchip','Furniture & Fixtures':'fa-chair'};
+  return m[cat]||'fa-cube';
+}
+
+function buildOpts(arr, ph='-- Select --') { return `<option value="">${ph}</option>`+arr.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join(''); }
+function staffOpts(ph='-- Select Staff --') { return `<option value="">${ph}</option>`+APP.staff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)} — ${esc(s.designation)}</option>`).join(''); }
+
+function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+// ── AUTH ──────────────────────────────────────────
+async function doLogin() {
+  const u = document.getElementById('login-username').value.trim();
+  const p = document.getElementById('login-password').value.trim();
+  if (!u||!p) { toast('Enter username and password','warning'); return; }
+  if (!GAS_URL) { toast('Enter your GAS URL first','warning'); return; }
+  loading('Signing in…');
+  const r = await api('server_login', u, p);
+  doneLoading();
+  if (r.success) {
+    APP.user = r.user;
+    await Promise.all([loadSettings(), loadStaff()]);
+    document.getElementById('login-page').classList.add('hidden');
+    document.getElementById('app-layout').classList.remove('hidden');
+    const ini = (r.user.name||'U').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    document.getElementById('user-av').textContent = ini;
+    document.getElementById('user-name').textContent = r.user.name;
+    document.getElementById('user-role').textContent = r.user.role;
+    nav('dashboard');
+    toast(`Welcome, ${r.user.name}!`,'success');
+  } else { toast(r.message||'Login failed','error'); document.getElementById('login-password').value=''; }
+}
+function doLogout() { APP.user=null; stopScanner(); document.getElementById('app-layout').classList.add('hidden'); document.getElementById('login-page').classList.remove('hidden'); }
+
+async function loadSettings() {
+  const r = await api('server_getSettings');
+  if (r.success) {
+    APP.settings = r.data;
+    const logo = r.data.logo_url||'';
+    const col  = r.data.college_name||'Don Bosco Polytechnic College';
+    if (logo) { document.getElementById('sb-logo').src=logo; document.getElementById('sb-logo').classList.remove('hidden'); document.getElementById('sb-logo-ph').classList.add('hidden'); document.getElementById('login-logo').src=logo; }
+    document.getElementById('sb-college').textContent = col;
+  }
+}
+async function loadStaff() { const r=await api('server_getStaff'); if(r.success) APP.staff=r.data; }
+
+// ── NAVIGATION ────────────────────────────────────
+function nav(page) {
+  APP.page = page;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active', el.dataset.page===page));
+  document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+  const sec = document.getElementById('page-'+page);
+  if (sec) sec.classList.add('active');
+  const titles = {dashboard:'Dashboard',assets:'Asset Catalog',checkout:'Check-Out / Return',register:'In/Out Register',qr:'QR Code Generator',maintenance:'Maintenance',consumables:'Consumables & Stock',documents:'Documents',reports:'Reports',staff:'Staff Management',settings:'Settings'};
+  document.getElementById('page-title').textContent = titles[page]||page;
+  stopScanner();
+  loadPage(page);
+}
+
+async function loadPage(page) {
+  switch(page) {
+    case 'dashboard':   await loadDashboard();    break;
+    case 'assets':      await loadAssets();        break;
+    case 'checkout':    renderCheckoutPage();      break;
+    case 'register':    await loadRegister();      break;
+    case 'qr':          await loadQR();            break;
+    case 'maintenance': await loadMaintenance();   break;
+    case 'consumables': await loadConsumables();   break;
+    case 'documents':   await loadDocs();          break;
+    case 'reports':     /* static */              break;
+    case 'staff':       await loadStaffPage();    break;
+    case 'settings':    renderSettings();          break;
+  }
+}
+
+// ── DASHBOARD ─────────────────────────────────────
+let dChart=null;
+async function loadDashboard() {
+  loading('Loading dashboard…');
+  const r = await api('server_getDashboardStats');
+  doneLoading();
+  if (!r.success) { toast(r.message,'error'); return; }
+  const d = r.data;
+  document.getElementById('d-total').textContent   = d.totalAssets;
+  document.getElementById('d-avail').textContent   = d.available;
+  document.getElementById('d-out').textContent     = d.checkedOut;
+  document.getElementById('d-maint').textContent   = d.maintenance;
+  document.getElementById('d-low').textContent     = d.lowStock;
+  document.getElementById('d-tickets').textContent = d.openTickets;
+  const nb = document.getElementById('nav-badge-out');
+  if (d.checkedOut>0) { nb.textContent=d.checkedOut; nb.classList.remove('hidden'); } else nb.classList.add('hidden');
+  // Chart
+  const ctx = document.getElementById('dash-chart');
+  if (dChart) dChart.destroy();
+  dChart = new Chart(ctx, { type:'doughnut', data:{ labels:['Available','Checked Out','Maintenance','Condemned'], datasets:[{data:[d.available,d.checkedOut,d.maintenance,d.condemned], backgroundColor:['#10b981','#ef4444','#f59e0b','#64748b'], borderColor:'transparent', borderRadius:6, spacing:4}] }, options:{ cutout:'65%', plugins:{legend:{position:'bottom',labels:{color:'#94a3b8',padding:14,font:{size:12}}}}} });
+  // Recent
+  const tbody = document.getElementById('d-recent');
+  const txns = d.recentTransactions||[];
+  tbody.innerHTML = txns.length ? txns.map(t=>`<tr><td class="font-mono text-accent">${esc(t.assetId)}</td><td>${esc(t.assetName)}</td><td>${esc(t.requestedBy)}</td><td style="font-size:.76rem">${esc(t.checkoutDate)}</td><td>${badge(t.status)}</td></tr>`).join('') : '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:18px">No recent transactions</td></tr>';
+}
+
+// ── ASSETS ────────────────────────────────────────
+async function loadAssets() {
+  loading('Loading assets…');
+  const r = await api('server_getAssets');
+  doneLoading();
+  if (!r.success) { toast(r.message,'error'); return; }
+  APP.assets = r.data;
+  renderAssetGrid(APP.assets);
+}
+
+function renderAssetGrid(assets) {
+  const grid = document.getElementById('asset-grid');
+  if (!assets.length) { grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-boxes"></i><p>No assets. Click "+ Add Asset" to begin.</p></div>'; return; }
+  const sc = {'Available':'badge-success','Checked Out':'badge-danger','Under Maintenance':'badge-warning','Condemned':'badge-secondary'};
+  grid.innerHTML = assets.map(a=>{
+    const ic = catIcon(a.category);
+    return `<div class="asset-thumb" onclick="showAsset('${esc(a.assetId)}')">
+      <div class="at-img">${a.imageUrl?`<img src="${esc(a.imageUrl)}" alt="${esc(a.name)}" onerror="this.parentNode.innerHTML='<i class=\\'fas ${ic}\\'></i>'">` : `<i class="fas ${ic}"></i>`}</div>
+      <div class="at-body">
+        <div class="at-id">${esc(a.assetId)}</div>
+        <div class="at-name">${esc(a.name)}</div>
+        <div class="at-lab"><i class="fas fa-map-marker-alt" style="font-size:.63rem"></i> ${esc(a.lab)}</div>
+        <div class="at-footer">
+          <span class="badge ${sc[a.status]||'badge-secondary'}">${esc(a.status)}</span>
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-sm btn-secondary btn-icon" title="QR" onclick="event.stopPropagation();showQRSingle('${esc(a.assetId)}')"><i class="fas fa-qrcode"></i></button>
+            <button class="btn btn-sm btn-secondary btn-icon" title="Edit" onclick="event.stopPropagation();editAsset('${esc(a.assetId)}')"><i class="fas fa-pen"></i></button>
+            <button class="btn btn-sm btn-danger btn-icon" title="Delete" onclick="event.stopPropagation();delAsset('${esc(a.assetId)}')"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterAssets() {
+  const q=document.getElementById('asset-q').value.toLowerCase();
+  const s=document.getElementById('asset-sf').value;
+  const l=document.getElementById('asset-lf').value;
+  renderAssetGrid(APP.assets.filter(a=>{
+    const mq=!q||a.name.toLowerCase().includes(q)||a.assetId.toLowerCase().includes(q)||(a.serialNo||'').toLowerCase().includes(q);
+    const ms=!s||s==='All'||a.status===s;
+    const ml=!l||l==='All'||a.lab===l;
+    return mq&&ms&&ml;
+  }));
+}
+
+function showAsset(id) {
+  const a = APP.assets.find(x=>x.assetId===id);
+  if (!a) return;
+  const ic = catIcon(a.category);
+  document.getElementById('asset-detail-body').innerHTML = `
+    <div style="display:flex;gap:18px;flex-wrap:wrap">
+      <div style="width:130px;height:130px;background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(139,92,246,.1));border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:2.8rem;color:var(--primary);flex-shrink:0;overflow:hidden">
+        ${a.imageUrl?`<img src="${esc(a.imageUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:11px" onerror="this.parentNode.innerHTML='<i class=\\'fas ${ic}\\'></i>'">`:`<i class="fas ${ic}"></i>`}
+      </div>
+      <div style="flex:1;min-width:190px">
+        <div class="at-id" style="font-size:.82rem">${esc(a.assetId)}</div>
+        <div style="font-size:1.15rem;font-weight:700;margin:4px 0">${esc(a.name)}</div>
+        <div style="margin-bottom:10px">${badge(a.status)}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;font-size:.81rem">
+          <div><span class="text-muted">Category:</span> ${esc(a.category)}</div>
+          <div><span class="text-muted">Sub-Cat:</span> ${esc(a.subCategory||'—')}</div>
+          <div><span class="text-muted">Lab:</span> ${esc(a.lab)}</div>
+          <div><span class="text-muted">Serial:</span> <span class="font-mono">${esc(a.serialNo||'—')}</span></div>
+          <div><span class="text-muted">Purchase:</span> ${fmtDate(a.purchaseDate)}</div>
+          <div><span class="text-muted">Cost:</span> ₹${Number(a.cost||0).toLocaleString('en-IN')}</div>
+          <div><span class="text-muted">Vendor:</span> ${esc(a.vendor||'—')}</div>
+          <div><span class="text-muted">Warranty:</span> ${esc(a.warranty||'—')}</div>
+        </div>
+        ${a.description?`<div style="margin-top:9px;font-size:.81rem"><span class="text-muted">Description:</span> ${esc(a.description)}</div>`:''}
+      </div>
+    </div>
+    <div style="display:flex;gap:9px;margin-top:18px;flex-wrap:wrap">
+      ${a.status==='Available'?`<button class="btn btn-success" onclick="closeModal('asset-detail-modal');prepCheckout('${esc(a.assetId)}')"><i class="fas fa-sign-out-alt"></i> Check Out</button>`:''}
+      ${a.status==='Checked Out'?`<button class="btn btn-warning" onclick="closeModal('asset-detail-modal');prepReturn('${esc(a.assetId)}')"><i class="fas fa-undo"></i> Return</button>`:''}
+      <button class="btn btn-secondary" onclick="showQRSingle('${esc(a.assetId)}')"><i class="fas fa-qrcode"></i> QR Code</button>
+      <button class="btn btn-secondary" onclick="closeModal('asset-detail-modal');editAsset('${esc(a.assetId)}')"><i class="fas fa-pen"></i> Edit</button>
+      <button class="btn btn-danger" onclick="closeModal('asset-detail-modal');openMaintModal('${esc(a.assetId)}','${esc(a.name)}')"><i class="fas fa-tools"></i> Maintenance</button>
+    </div>`;
+  openModal('asset-detail-modal');
+}
+
+function openAddAsset() {
+  document.getElementById('af-id').value='';
+  document.getElementById('asset-modal-title').innerHTML='<i class="fas fa-plus" style="color:var(--primary);margin-right:7px"></i> Add Asset';
+  ['af-name','af-subcat','af-serial','af-vendor','af-warranty','af-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('af-cat').value='';
+  document.getElementById('af-lab').value='';
+  document.getElementById('af-qty').value='1';
+  document.getElementById('af-qty-row').classList.remove('hidden');
+  openModal('asset-modal');
+}
+
+function editAsset(id) {
+  const a = APP.assets.find(x=>x.assetId===id);
+  if (!a) return;
+  document.getElementById('af-id').value=id;
+  document.getElementById('asset-modal-title').innerHTML='<i class="fas fa-pen" style="color:var(--primary);margin-right:7px"></i> Edit Asset';
+  document.getElementById('af-name').value=a.name||'';
+  document.getElementById('af-cat').value=a.category||'';
+  document.getElementById('af-subcat').value=a.subCategory||'';
+  document.getElementById('af-lab').value=a.lab||'';
+  document.getElementById('af-serial').value=a.serialNo||'';
+  document.getElementById('af-date').value=a.purchaseDate||'';
+  document.getElementById('af-cost').value=a.cost||'';
+  document.getElementById('af-vendor').value=a.vendor||'';
+  document.getElementById('af-warranty').value=a.warranty||'';
+  document.getElementById('af-desc').value=a.description||'';
+  document.getElementById('af-qty-row').classList.add('hidden'); // hide qty on edit
+  openModal('asset-modal');
+}
+
+async function saveAsset() {
+  const id   = document.getElementById('af-id').value;
+  const data = {
+    name:document.getElementById('af-name').value.trim(),
+    category:document.getElementById('af-cat').value,
+    subCategory:document.getElementById('af-subcat').value.trim(),
+    lab:document.getElementById('af-lab').value,
+    serialNo:document.getElementById('af-serial').value.trim(),
+    purchaseDate:document.getElementById('af-date').value,
+    cost:document.getElementById('af-cost').value,
+    vendor:document.getElementById('af-vendor').value.trim(),
+    warranty:document.getElementById('af-warranty').value.trim(),
+    description:document.getElementById('af-desc').value.trim(),
+  };
+  if (!data.name) { toast('Asset name required','warning'); return; }
+  if (!data.lab)  { toast('Lab required','warning'); return; }
+  loading('Saving…');
+  let r;
+  if (id) {
+    r = await api('server_updateAsset', id, data);
+  } else {
+    const qty = Number(document.getElementById('af-qty').value)||1;
+    r = qty > 1 ? await api('server_addAssetBulk', data, qty) : await api('server_addAsset', data);
+  }
+  doneLoading();
+  if (r.success) {
+    const msg = r.count > 1 ? `${r.count} assets created! (${r.firstId} → ${r.lastId})` : id ? 'Asset updated!' : `Asset added: ${r.assetId}`;
+    toast(msg,'success');
+    closeModal('asset-modal');
+    await loadAssets();
+  } else toast(r.message,'error');
+}
+
+async function delAsset(id) {
+  if (!confirm(`Delete asset ${id}?`)) return;
+  loading('Deleting…');
+  const r = await api('server_deleteAsset', id);
+  doneLoading();
+  if (r.success) { toast('Asset deleted','success'); await loadAssets(); } else toast(r.message,'error');
+}
+
+// ── QR SINGLE ─────────────────────────────────────
+function showQRSingle(id) {
+  const a = APP.assets.find(x=>x.assetId===id);
+  if (!a) return;
+  document.getElementById('qr-single-name').textContent = a.name;
+  const c = document.getElementById('qr-single-canvas');
+  c.innerHTML='';
+  QRCode.toCanvas(document.createElement('canvas'), id, {width:200,margin:2}, (err,canvas)=>{
+    if (!err) { c.appendChild(canvas); api('server_markQRGenerated', id); }
+  });
+  document.getElementById('qr-single-info').innerHTML=`<div class="text-accent font-mono fw-bold">${esc(id)}</div><div style="font-size:.78rem;color:var(--text2)">${esc(a.lab)} · ${esc(a.category)}</div>`;
+  openModal('qr-single-modal');
+}
+function downloadQRSingle() {
+  const cv = document.querySelector('#qr-single-canvas canvas');
+  if (!cv) return;
+  const lk = document.createElement('a');
+  lk.download = document.getElementById('qr-single-name').textContent+'_QR.png';
+  lk.href = cv.toDataURL();
+  lk.click();
+}
+
+// ── QR BULK ───────────────────────────────────────
+async function loadQR() {
+  const r = await api('server_getAssets');
+  if (!r.success) return;
+  APP.assets = r.data;
+  document.getElementById('qr-checklist').innerHTML = APP.assets.map(a=>`
+    <label class="form-check" style="padding:7px 11px;border:1px solid var(--border);border-radius:7px;cursor:pointer">
+      <input type="checkbox" value="${esc(a.assetId)}" class="qr-cb">
+      <span><span class="font-mono text-accent" style="font-size:.76rem">${esc(a.assetId)}</span> — ${esc(a.name)} <span class="text-muted" style="font-size:.73rem">(${esc(a.lab)})</span></span>
+    </label>`).join('');
+}
+function toggleAllQR(v) { document.querySelectorAll('.qr-cb').forEach(cb=>cb.checked=v); }
+async function generateQR() {
+  const sel = [...document.querySelectorAll('.qr-cb:checked')].map(cb=>cb.value);
+  if (!sel.length) { toast('Select at least one asset','warning'); return; }
+  loading('Generating QR codes…');
+  const preview = document.getElementById('qr-preview');
+  preview.innerHTML='';
+  for (const id of sel) {
+    const a = APP.assets.find(x=>x.assetId===id);
+    if (!a) continue;
+    const card=document.createElement('div'); card.className='qr-card';
+    const cv=document.createElement('canvas');
+    try { await new Promise((res,rej)=>QRCode.toCanvas(cv,id,{width:128,margin:1},e=>e?rej(e):res())); } catch(e){ continue; }
+    card.appendChild(cv);
+    card.innerHTML+=`<div class="qr-name">${esc(a.name)}</div><div class="qr-id">${esc(id)}</div><div class="qr-lab">${esc(a.lab)}</div>`;
+    preview.appendChild(card);
+    api('server_markQRGenerated', id);
+  }
+  doneLoading();
+  document.getElementById('qr-actions').classList.remove('hidden');
+  toast(`${sel.length} QR codes generated!`,'success');
+}
+function printQR() {
+  const pa  = document.getElementById('print-area');
+  const col = APP.settings.college_name||'Don Bosco Polytechnic College';
+  const dep = APP.settings.department||'Department of Mechanical Engineering';
+  const log = APP.settings.logo_url||'';
+  const fou = APP.settings.founder_url||'';
+  let items='';
+  document.querySelectorAll('#qr-preview .qr-card').forEach(card=>{
+    const cv=card.querySelector('canvas');
+    if(!cv) return;
+    items+=`<div class="p-qr-item"><img src="${cv.toDataURL()}" width="108" height="108"><div class="p-qr-id">${esc(card.querySelector('.qr-id').textContent)}</div><div class="p-qr-name">${esc(card.querySelector('.qr-name').textContent)}</div><div class="p-qr-lab">${esc(card.querySelector('.qr-lab').textContent)}</div></div>`;
+  });
+  pa.innerHTML=`<div class="p-header">${log?`<img src="${log}" width="66" height="66">`:'<div style="width:66px"></div>'}<div class="p-center"><div class="p-college">${esc(col)}</div><div class="p-dept">${esc(dep)}</div><div class="p-title">Asset QR Code Labels — ${new Date().toLocaleDateString('en-IN')}</div></div>${fou?`<img src="${fou}" width="66" height="66">`:'<div style="width:66px"></div>'}</div><div class="p-qr-grid">${items}</div>`;
+  pa.style.display='block'; window.print(); setTimeout(()=>pa.style.display='none',1000);
+}
+
+// ── SCANNER ───────────────────────────────────────
+function startScan(mode) {
+  stopScanner();
+  const wrap = document.getElementById(mode==='checkout'?'scanner-co-wrap':'scanner-rt-wrap');
+  const readerId = mode==='checkout'?'reader':'reader-return';
+  wrap.classList.remove('hidden');
+  APP.scanner = new Html5Qrcode(readerId);
+  APP.scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:240,height:240}},
+    txt => { stopScanner(); wrap.classList.add('hidden'); mode==='checkout'?handleCO(txt.trim()):handleRT(txt.trim()); },
+    ()=>{}
+  ).catch(e=>toast('Camera error: '+e.message,'error'));
+}
+function stopScanner() {
+  if (APP.scanner) { try{APP.scanner.stop().catch(()=>{})}catch(e){} APP.scanner=null; }
+}
+function renderCheckoutPage() {
+  ['co-req','co-iss','co-app'].forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=staffOpts(); });
+}
+function manualLookup(mode) {
+  const id = document.getElementById(mode+'-manual').value.trim().toUpperCase();
+  if (!id) { toast('Enter an Asset ID','warning'); return; }
+  mode==='co'?handleCO(id):handleRT(id);
+}
+
+async function handleCO(id) {
+  loading('Looking up asset…');
+  const r = await api('server_getAssetById', id);
+  doneLoading();
+  if (!r.success) { toast(r.message,'error'); return; }
+  const a = r.data;
+  if (a.status!=='Available') { toast(`"${a.name}" is not available. Status: ${a.status}`,'warning'); return; }
+  document.getElementById('co-aid').value   = a.assetId;
+  document.getElementById('co-aname').value = a.name;
+  document.getElementById('co-result').innerHTML=`<div class="scan-result"><i class="fas fa-check-circle"></i> Found: <strong>${esc(a.name)}</strong> (${esc(a.assetId)}) · Lab: ${esc(a.lab)}</div>`;
+  document.getElementById('co-form').classList.remove('hidden');
+  nav('checkout'); // ensure page visible
+}
+async function submitCheckout() {
+  const aid=document.getElementById('co-aid').value;
+  const req=document.getElementById('co-req').value;
+  const iss=document.getElementById('co-iss').value;
+  const app=document.getElementById('co-app').value;
+  const pur=document.getElementById('co-purpose').value.trim();
+  const exp=document.getElementById('co-exp').value;
+  const nts=document.getElementById('co-notes').value.trim();
+  if (!aid||!req||!iss||!app) { toast('Fill all required fields','warning'); return; }
+  loading('Processing…');
+  const r = await api('server_checkoutAsset', aid, req, iss, app, pur, exp, nts);
+  doneLoading();
+  if (r.success) { toast(`Checked out! Ref: ${r.txnId}`,'success'); document.getElementById('co-form').classList.add('hidden'); document.getElementById('co-result').innerHTML=''; document.getElementById('co-aid').value=''; }
+  else toast(r.message,'error');
+}
+
+async function handleRT(id) {
+  loading('Looking up asset…');
+  const r = await api('server_getAssetById', id);
+  doneLoading();
+  if (!r.success) { toast(r.message,'error'); return; }
+  const a = r.data;
+  const msg = a.status==='Available'
+    ? `<div class="scan-result" style="background:rgba(245,158,11,.1);border-color:#f59e0b;color:#fbbf24"><i class="fas fa-exclamation-triangle"></i> "${esc(a.name)}" is already Available.</div>`
+    : `<div class="scan-result"><i class="fas fa-check-circle"></i> Found: <strong>${esc(a.name)}</strong> (${esc(a.assetId)}) · Status: ${esc(a.status)}</div>`;
+  document.getElementById('rt-aid').value = a.assetId;
+  document.getElementById('rt-result').innerHTML = msg;
+  document.getElementById('rt-aname').textContent = `${a.name} (${a.assetId})`;
+  document.getElementById('rt-form').classList.remove('hidden');
+}
+function prepCheckout(id) { nav('checkout'); setTimeout(()=>handleCO(id),100); }
+function prepReturn(id)   { nav('checkout'); setTimeout(()=>handleRT(id),100); }
+
+async function submitReturn() {
+  const aid=document.getElementById('rt-aid').value;
+  const nts=document.getElementById('rt-notes').value.trim();
+  if (!aid) { toast('No asset selected','warning'); return; }
+  loading('Processing return…');
+  const r = await api('server_returnAsset', aid, nts);
+  doneLoading();
+  if (r.success) { toast(r.message,'success'); document.getElementById('rt-form').classList.add('hidden'); document.getElementById('rt-result').innerHTML=''; }
+  else toast(r.message,'error');
+}
+
+// ── REGISTER ──────────────────────────────────────
+async function loadRegister() {
+  const from=document.getElementById('reg-from').value;
+  const to  =document.getElementById('reg-to').value;
+  const st  =document.getElementById('reg-status').value;
+  loading('Loading register…');
+  const r = await api('server_getTransactions', from, to, st);
+  doneLoading();
+  if (!r.success) { toast(r.message,'error'); return; }
+  const tbody=document.getElementById('reg-tbody');
+  if (!r.data.length) { tbody.innerHTML='<tr><td colspan="9" class="text-muted" style="text-align:center;padding:22px">No records found</td></tr>'; return; }
+  tbody.innerHTML = r.data.map((t,i)=>{
+    const od = t.status==='OUT'&&t.expectedReturn&&new Date(t.expectedReturn)<new Date();
+    return `<tr class="${od?'overdue-row':''}"><td class="font-mono text-muted" style="font-size:.73rem">${i+1}</td><td class="font-mono text-accent">${esc(t.assetId)}</td><td>${esc(t.assetName)}</td><td>${esc(t.requestedBy)}</td><td>${esc(t.issuedBy)}</td><td>${esc(t.approvedBy)}</td><td style="font-size:.77rem">${esc(t.checkoutDate)}</td><td style="font-size:.77rem">${esc(t.actualReturn)||'—'}</td><td>${badge(t.status)}${od?' <span class="badge badge-danger">OVERDUE</span>':''}</td></tr>`;
+  }).join('');
+}
+function printRegister() { printTableWindow('Asset In/Out Register', document.getElementById('reg-table').outerHTML); }
+
+// ── MAINTENANCE ───────────────────────────────────
+async function loadMaintenance() {
+  loading('Loading maintenance…');
+  const r = await api('server_getMaintenanceTickets');
+  doneLoading();
+  if (!r.success) { toast(r.message,'error'); return; }
+  const pri = {'High':'badge-danger','Medium':'badge-warning','Low':'badge-info'};
+  document.getElementById('maint-tbody').innerHTML = r.data.length
+    ? r.data.map(t=>`<tr><td class="font-mono" style="font-size:.73rem">${esc(t.ticketId)}</td><td class="font-mono text-accent">${esc(t.assetId)}</td><td>${esc(t.assetName)}</td><td>${esc(t.issue)}</td><td><span class="badge ${pri[t.priority]||'badge-secondary'}">${esc(t.priority)}</span></td><td>${esc(t.assignedTo)}</td><td>${badge(t.status)}</td><td style="font-size:.77rem">${esc(t.reportedDate)}</td><td>${t.status!=='Resolved'?`<button class="btn btn-sm btn-success btn-icon" title="Resolve" onclick="resolveMaint('${esc(t.ticketId)}')"><i class="fas fa-check"></i></button>`:'—'}</td></tr>`).join('')
+    : '<tr><td colspan="9" class="text-muted" style="text-align:center;padding:22px">No maintenance tickets</td></tr>';
+}
+function openMaintModal(aid,aname) {
+  document.getElementById('maint-aid').value  = aid;
+  document.getElementById('maint-aname').value= aname;
+  document.getElementById('maint-issue').value='';
+  document.getElementById('maint-pri').value  ='';
+  document.getElementById('maint-rep').innerHTML  = staffOpts();
+  document.getElementById('maint-asgn').innerHTML = staffOpts();
+  openModal('maint-modal');
+}
+async function saveMaint() {
+  const aid=document.getElementById('maint-aid').value;
+  const an =document.getElementById('maint-aname').value.trim();
+  const iss=document.getElementById('maint-issue').value.trim();
+  const pri=document.getElementById('maint-pri').value;
+  const rep=document.getElementById('maint-rep').value;
+  const asn=document.getElementById('maint-asgn').value;
+  if (!iss||!pri||!rep||!asn) { toast('Fill all required fields','warning'); return; }
+  loading('Saving…');
+  const r = await api('server_addMaintenanceTicket', aid, an, iss, pri, rep, asn);
+  doneLoading();
+  if (r.success) { toast(`Ticket: ${r.ticketId}`,'success'); closeModal('maint-modal'); await loadMaintenance(); }
+  else toast(r.message,'error');
+}
+async function resolveMaint(id) {
+  const nts=prompt('Resolution notes:')||'';
+  const cost=prompt('Repair cost (₹):')||'0';
+  loading('Updating…');
+  const r=await api('server_updateMaintenanceStatus', id, 'Resolved', nts, cost);
+  doneLoading();
+  if(r.success){toast('Ticket resolved!','success');await loadMaintenance();}else toast(r.message,'error');
+}
+
+// ── CONSUMABLES ───────────────────────────────────
+async function loadConsumables() {
+  loading('Loading inventory…');
+  const r = await api('server_getConsumables');
+  doneLoading();
+  if (!r.success) { toast(r.message,'error'); return; }
+  document.getElementById('cons-tbody').innerHTML = r.data.length
+    ? r.data.map(it=>`<tr class="${it.isLow?'low-stock-row':''}"><td class="font-mono text-accent">${esc(it.itemId)}</td><td>${esc(it.name)}${it.isLow?' <span class="badge badge-danger" style="font-size:.58rem">LOW</span>':''}</td><td>${esc(it.category)}</td><td>${esc(it.unit)}</td><td class="fw-bold ${it.isLow?'text-danger':'text-success'}">${it.currentStock}</td><td class="text-muted">${it.minStock}</td><td>${esc(it.location||'—')}</td><td><div style="display:flex;gap:5px"><button class="btn btn-sm btn-success" onclick="openStock('${esc(it.itemId)}','${esc(it.name)}','IN')"><i class="fas fa-plus"></i> In</button><button class="btn btn-sm btn-warning" onclick="openStock('${esc(it.itemId)}','${esc(it.name)}','OUT')"><i class="fas fa-minus"></i> Out</button><button class="btn btn-sm btn-secondary btn-icon" onclick="showStockHist('${esc(it.itemId)}','${esc(it.name)}')"><i class="fas fa-history"></i></button></div></td></tr>`).join('')
+    : '<tr><td colspan="8" class="text-muted" style="text-align:center;padding:22px">No items. Click "+ Add Item".</td></tr>';
+}
+async function saveConsumable() {
+  const n=document.getElementById('ci-name').value.trim();
+  const c=document.getElementById('ci-cat').value;
+  const u=document.getElementById('ci-unit').value.trim();
+  const curr=document.getElementById('ci-curr').value;
+  const min=document.getElementById('ci-min').value;
+  const loc=document.getElementById('ci-loc').value.trim();
+  const desc=document.getElementById('ci-desc').value.trim();
+  if(!n||!c||!u){toast('Name, Category and Unit required','warning');return;}
+  loading('Saving…');
+  const r=await api('server_addConsumable',n,c,u,curr||0,min||0,loc,desc);
+  doneLoading();
+  if(r.success){toast('Item added!','success');closeModal('cons-modal');await loadConsumables();}else toast(r.message,'error');
+}
+function openStock(iid,name,type) {
+  document.getElementById('sm-iid').value=iid;
+  document.getElementById('sm-type').value=type;
+  document.getElementById('sm-name').textContent=name;
+  document.getElementById('stock-modal-title').innerHTML=(type==='IN'?'➕ Stock In':'➖ Stock Out')+' — '+name;
+  document.getElementById('sm-qty').value='';
+  document.getElementById('sm-to').innerHTML=staffOpts('-- Issued To (optional) --');
+  document.getElementById('sm-notes').value='';
+  openModal('stock-modal');
+}
+async function submitStock() {
+  const iid=document.getElementById('sm-iid').value;
+  const type=document.getElementById('sm-type').value;
+  const qty=document.getElementById('sm-qty').value;
+  const to=document.getElementById('sm-to').value;
+  const nts=document.getElementById('sm-notes').value.trim();
+  if(!qty||Number(qty)<1){toast('Enter valid quantity','warning');return;}
+  loading('Updating stock…');
+  const r=await api('server_stockTransaction',iid,type,qty,to,nts);
+  doneLoading();
+  if(r.success){toast(`Stock updated. Balance: ${r.newStock}`,'success');closeModal('stock-modal');await loadConsumables();}else toast(r.message,'error');
+}
+async function showStockHist(iid,name) {
+  loading('Loading history…');
+  const r=await api('server_getStockTransactions',iid);
+  doneLoading();
+  if(!r.success){toast(r.message,'error');return;}
+  document.getElementById('hist-name').textContent=name;
+  document.getElementById('hist-tbody').innerHTML=r.data.length
+    ?r.data.map(t=>`<tr><td style="font-size:.75rem">${esc(t.date)}</td><td><span class="badge ${t.type==='IN'?'badge-success':'badge-warning'}">${t.type}</span></td><td>${t.quantity}</td><td class="fw-bold">${t.balanceAfter}</td><td>${esc(t.issuedTo)||'—'}</td><td style="font-size:.77rem">${esc(t.notes)||'—'}</td></tr>`).join('')
+    :'<tr><td colspan="6" class="text-muted" style="text-align:center;padding:14px">No history</td></tr>';
+  openModal('hist-modal');
+}
+
+// ── DOCUMENTS ─────────────────────────────────────
+let uploadFileObj=null;
+async function loadDocs(filter='All') {
+  loading('Loading documents…');
+  const r=await api('server_getDocuments',filter);
+  doneLoading();
+  if(!r.success){toast(r.message,'error');return;}
+  const grid=document.getElementById('doc-grid');
+  const icons={'Bill/Invoice':'fa-file-invoice','Delivery Challan':'fa-truck','Inventory List':'fa-list','Procurement List':'fa-shopping-cart','Stock List':'fa-boxes','Inspection Report':'fa-clipboard-check','Other':'fa-file'};
+  grid.innerHTML=r.data.length
+    ?r.data.map(d=>{const ic=icons[d.docType]||'fa-file';const isImg=d.thumbURL&&d.thumbURL.includes('thumbnail');return`<div class="doc-thumb"><div class="doc-prev">${isImg?`<img src="${esc(d.thumbURL)}" alt="${esc(d.fileName)}" onerror="this.parentNode.innerHTML='<i class=\\'fas ${ic}\\'></i>'">`:`<i class="fas ${ic}"></i>`}</div><div class="doc-info"><div class="doc-name" title="${esc(d.fileName)}">${esc(d.fileName)}</div><div class="doc-type">${esc(d.docType)} · ${esc(d.uploadDate)}</div><div class="doc-type text-muted">${esc(d.fileSize||'')}</div><div style="display:flex;gap:5px;margin-top:7px"><a href="${esc(d.driveURL)}" target="_blank" class="btn btn-sm btn-secondary" style="flex:1;justify-content:center"><i class="fas fa-external-link-alt"></i> View</a><button class="btn btn-sm btn-danger btn-icon" onclick="delDoc('${esc(d.docId)}')"><i class="fas fa-trash"></i></button></div></div></div>`;}).join('')
+    :'<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-folder-open"></i><p>No documents yet.</p></div>';
+}
+function initUploadZone() {
+  const zone=document.getElementById('upload-zone');
+  const input=document.getElementById('upload-file');
+  zone.onclick=()=>input.click();
+  zone.ondragover=e=>{e.preventDefault();zone.classList.add('drag-over')};
+  zone.ondragleave=()=>zone.classList.remove('drag-over');
+  zone.ondrop=e=>{e.preventDefault();zone.classList.remove('drag-over');if(e.dataTransfer.files[0])setUpFile(e.dataTransfer.files[0])};
+  input.onchange=()=>{if(input.files[0])setUpFile(input.files[0])};
+}
+function setUpFile(f){uploadFileObj=f;document.getElementById('upload-fname').textContent=`Selected: ${f.name} (${Math.round(f.size/1024)} KB)`;}
+async function submitUpload() {
+  if (!uploadFileObj){toast('Select a file','warning');return;}
+  const type=document.getElementById('upload-type').value;
+  const nts=document.getElementById('upload-notes').value.trim();
+  if(!type){toast('Select document type','warning');return;}
+  loading('Uploading to Google Drive…');
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    const b64=e.target.result.split(',')[1];
+    const r=await api('server_uploadDocument',b64,uploadFileObj.type,uploadFileObj.name,type,nts,APP.user?.name||'Unknown','');
+    doneLoading();
+    if(r.success){toast('Uploaded!','success');closeModal('upload-modal');uploadFileObj=null;document.getElementById('upload-fname').textContent='';await loadDocs();}
+    else toast(r.message,'error');
+  };
+  reader.readAsDataURL(uploadFileObj);
+}
+async function delDoc(id) {
+  if(!confirm('Delete this document?'))return;
+  loading('Deleting…');const r=await api('server_deleteDocument',id);doneLoading();
+  if(r.success){toast('Deleted','success');await loadDocs();}else toast(r.message,'error');
+}
+
+// ── STAFF ─────────────────────────────────────────
+async function loadStaffPage() {
+  await loadStaff();
+  document.getElementById('staff-tbody').innerHTML=APP.staff.length
+    ?APP.staff.map((s,i)=>`<tr><td class="font-mono text-muted">${i+1}</td><td>${esc(s.name)}</td><td>${esc(s.designation)}</td><td>${esc(s.department)}</td><td>${esc(s.phone||'—')}</td><td><button class="btn btn-sm btn-danger btn-icon" onclick="delStaff('${esc(s.id)}')"><i class="fas fa-trash"></i></button></td></tr>`).join('')
+    :'<tr><td colspan="6" class="text-muted" style="text-align:center;padding:18px">No staff</td></tr>';
+}
+async function saveStaff() {
+  const n=document.getElementById('st-name').value.trim();
+  const d=document.getElementById('st-desig').value.trim();
+  const dept=document.getElementById('st-dept').value.trim();
+  const p=document.getElementById('st-phone').value.trim();
+  if(!n||!d){toast('Name and designation required','warning');return;}
+  loading('Saving…');const r=await api('server_addStaff',n,d,dept||'Mechanical Engineering',p);doneLoading();
+  if(r.success){toast('Staff added!','success');closeModal('staff-modal');await loadStaffPage();}else toast(r.message,'error');
+}
+async function delStaff(id) {
+  if(!confirm('Remove this staff?'))return;
+  loading('Removing…');const r=await api('server_deleteStaff',id);doneLoading();
+  if(r.success){toast('Removed','success');await loadStaffPage();}else toast(r.message,'error');
+}
+
+// ── SETTINGS ──────────────────────────────────────
+function renderSettings() {
+  document.getElementById('set-college').value=APP.settings.college_name||'';
+  document.getElementById('set-dept').value=APP.settings.department||'';
+  document.getElementById('set-addr').value=APP.settings.address||'';
+  document.getElementById('set-gas-url').value=GAS_URL||'';
+  if(APP.settings.logo_url)   document.getElementById('set-logo-prev').src=APP.settings.logo_url;
+  if(APP.settings.founder_url)document.getElementById('set-found-prev').src=APP.settings.founder_url;
+}
+async function saveSettings() {
+  loading('Saving…');
+  await api('server_updateSetting','college_name',document.getElementById('set-college').value.trim());
+  await api('server_updateSetting','department',  document.getElementById('set-dept').value.trim());
+  await api('server_updateSetting','address',     document.getElementById('set-addr').value.trim());
+  await loadSettings();
+  doneLoading();
+  toast('Settings saved!','success');
+}
+function uploadFile(input, key, prevId) {
+  const file=input.files[0];
+  if(!file)return;
+  if(file.size>2*1024*1024){toast('Max 2MB','warning');return;}
+  loading('Uploading image…');
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    const b64=e.target.result.split(',')[1];
+    const r=await api('server_uploadCollegeFile',b64,file.type,key+'.'+file.name.split('.').pop(),key);
+    doneLoading();
+    if(r.success){toast('Image uploaded!','success');document.getElementById(prevId).src=r.url;APP.settings[key]=r.url;loadSettings();}
+    else toast(r.message,'error');
+  };
+  reader.readAsDataURL(file);
+}
+async function runSetup() {
+  if(!confirm('Run initial setup? Only do this once.'))return;
+  loading('Setting up database…');
+  const r=await api('setup');
+  doneLoading();
+  toast(r.message,r.success?'success':'error');
+}
+
+// ── REPORTS ───────────────────────────────────────
+function printTableWindow(title, tableHtml) {
+  const log=APP.settings.logo_url||''; const fou=APP.settings.founder_url||'';
+  const col=APP.settings.college_name||'Don Bosco Polytechnic College';
+  const dep=APP.settings.department||'Department of Mechanical Engineering';
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>${esc(title)}</title>
+    <style>body{font-family:Arial,sans-serif;font-size:11px;padding:15mm;color:#111}
+    .hdr{display:flex;align-items:center;gap:18px;margin-bottom:15px;padding-bottom:12px;border-bottom:2.5px solid #1e40af}
+    .hdr img{width:66px;height:66px;object-fit:contain;background:#fff;border-radius:7px;padding:3px;border:1px solid #e5e7eb}
+    .hc{flex:1;text-align:center}.col{font-size:1.1em;font-weight:800;color:#1e3a8a}
+    .dep{font-size:.85em;font-weight:600;color:#374151;margin-top:2px}.tit{font-size:.76em;color:#6b7280;margin-top:3px}
+    table{width:100%;border-collapse:collapse}th,td{border:1px solid #d1d5db;padding:6px 8px;text-align:left}
+    th{background:#1e3a8a;color:#fff;font-size:10px}tr:nth-child(even){background:#f9fafb}
+    .badge{padding:2px 7px;border-radius:99px;font-size:10px;font-weight:600}
+    @media print{body{padding:8mm}}</style></head><body>
+    <div class="hdr">${log?`<img src="${log}">`:'<div style="width:66px"></div>'}
+    <div class="hc"><div class="col">${esc(col)}</div><div class="dep">${esc(dep)}</div>
+    <div class="tit">${esc(title)}</div><div class="tit">Generated: ${new Date().toLocaleString('en-IN')}</div></div>
+    ${fou?`<img src="${fou}">`:'<div style="width:66px"></div>'}</div>
+    ${tableHtml}<script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
+}
+
+async function printReport(type) {
+  loading('Preparing report…');
+  let html='', title='';
+  if (type==='assets') {
+    const r=await api('server_getAssets'); doneLoading();
+    if(!r.success){toast(r.message,'error');return;}
+    title='Asset Register';
+    html=`<table><thead><tr><th>#</th><th>Asset ID</th><th>Name</th><th>Category</th><th>Lab</th><th>Serial No.</th><th>Purchase Date</th><th>Cost (₹)</th><th>Status</th></tr></thead><tbody>${r.data.map((a,i)=>`<tr><td>${i+1}</td><td style="font-family:monospace">${esc(a.assetId)}</td><td>${esc(a.name)}</td><td>${esc(a.category)}</td><td>${esc(a.lab)}</td><td style="font-family:monospace">${esc(a.serialNo||'—')}</td><td>${fmtDate(a.purchaseDate)}</td><td>${Number(a.cost||0).toLocaleString('en-IN')}</td><td>${esc(a.status)}</td></tr>`).join('')}</tbody></table>`;
+  } else if (type==='inout') {
+    const from=document.getElementById('rep-from').value;
+    const to  =document.getElementById('rep-to').value;
+    const r=await api('server_getTransactions',from,to,'All'); doneLoading();
+    if(!r.success){toast(r.message,'error');return;}
+    title=`Asset In/Out Report${from?' | '+from:''}${to?' to '+to:''}`;
+    html=`<table><thead><tr><th>#</th><th>Asset ID</th><th>Asset</th><th>Requested By</th><th>Issued By</th><th>Approved By</th><th>Checkout</th><th>Return</th><th>Status</th></tr></thead><tbody>${r.data.length?r.data.map((t,i)=>`<tr><td>${i+1}</td><td style="font-family:monospace">${esc(t.assetId)}</td><td>${esc(t.assetName)}</td><td>${esc(t.requestedBy)}</td><td>${esc(t.issuedBy)}</td><td>${esc(t.approvedBy)}</td><td>${esc(t.checkoutDate)}</td><td>${esc(t.actualReturn)||'—'}</td><td>${esc(t.status)}</td></tr>`).join(''):'<tr><td colspan="9" style="text-align:center">No records</td></tr>'}</tbody></table>`;
+  } else if (type==='checkedout') {
+    const r=await api('server_getTransactions',null,null,'OUT'); doneLoading();
+    if(!r.success){toast(r.message,'error');return;}
+    title='Currently Checked Out Assets';
+    html=`<table><thead><tr><th>#</th><th>Asset ID</th><th>Asset</th><th>Requested By</th><th>Checkout Date</th><th>Expected Return</th></tr></thead><tbody>${r.data.length?r.data.map((t,i)=>`<tr><td>${i+1}</td><td style="font-family:monospace">${esc(t.assetId)}</td><td>${esc(t.assetName)}</td><td>${esc(t.requestedBy)}</td><td>${esc(t.checkoutDate)}</td><td>${esc(t.expectedReturn)||'—'}</td></tr>`).join(''):'<tr><td colspan="6" style="text-align:center">All assets returned</td></tr>'}</tbody></table>`;
+  } else if (type==='maintenance') {
+    const r=await api('server_getMaintenanceTickets'); doneLoading();
+    if(!r.success){toast(r.message,'error');return;}
+    title='Maintenance Report';
+    html=`<table><thead><tr><th>#</th><th>Ticket ID</th><th>Asset</th><th>Issue</th><th>Priority</th><th>Assigned To</th><th>Status</th><th>Cost (₹)</th><th>Date</th></tr></thead><tbody>${r.data.length?r.data.map((t,i)=>`<tr><td>${i+1}</td><td style="font-family:monospace">${esc(t.ticketId)}</td><td>${esc(t.assetName)}</td><td>${esc(t.issue)}</td><td>${esc(t.priority)}</td><td>${esc(t.assignedTo)}</td><td>${esc(t.status)}</td><td>${Number(t.cost||0).toLocaleString('en-IN')}</td><td>${esc(t.reportedDate)}</td></tr>`).join(''):'<tr><td colspan="9" style="text-align:center">No records</td></tr>'}</tbody></table>`;
+  } else if (type==='inventory') {
+    const r=await api('server_getConsumables'); doneLoading();
+    if(!r.success){toast(r.message,'error');return;}
+    title='Inventory / Consumables Report';
+    html=`<table><thead><tr><th>#</th><th>Item ID</th><th>Name</th><th>Category</th><th>Unit</th><th>Current Stock</th><th>Min Stock</th><th>Location</th></tr></thead><tbody>${r.data.length?r.data.map((it,i)=>`<tr style="${it.isLow?'background:#fff1f2':''}"><td>${i+1}</td><td style="font-family:monospace">${esc(it.itemId)}</td><td>${esc(it.name)}${it.isLow?' ⚠️':''}</td><td>${esc(it.category)}</td><td>${esc(it.unit)}</td><td style="font-weight:bold;color:${it.isLow?'#dc2626':'#059669'}">${it.currentStock}</td><td>${it.minStock}</td><td>${esc(it.location||'—')}</td></tr>`).join(''):'<tr><td colspan="8" style="text-align:center">No items</td></tr>'}</tbody></table>`;
+  } else { doneLoading(); return; }
+  printTableWindow(title, html);
+}
+
+// ── INIT ──────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  // Check saved GAS URL
+  if (GAS_URL) document.getElementById('gas-url-setup').classList.add('hidden');
+
+  // Try to load settings for login page branding
+  if (GAS_URL) {
+    const r = await api('server_getSettings');
+    if (r.success) {
+      const logo=r.data.logo_url||'';
+      if(logo) document.getElementById('login-logo').src=logo;
+    }
+  }
+
+  // Enter key on login
+  document.getElementById('login-password').addEventListener('keyup', e=>{ if(e.key==='Enter') doLogin(); });
+
+  // Populate static dropdowns
+  document.getElementById('af-cat').innerHTML = buildOpts(CATS,'-- Category --');
+  document.getElementById('af-lab').innerHTML = buildOpts(LABS,'-- Lab --');
+  document.getElementById('asset-lf').innerHTML = '<option value="All">All Labs</option>'+LABS.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
+  document.getElementById('ci-cat').innerHTML  = buildOpts(CONS_CATS,'-- Category --');
+
+  // Upload zone
+  initUploadZone();
+
+  // Close modal on backdrop click
+  document.querySelectorAll('.modal-overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){closeModal(ov.id);stopScanner();}}));
+});
+</script>
+</body>
+</html>
