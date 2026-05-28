@@ -2,9 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LabMgmt">
+<meta name="theme-color" content="#0a0e1a">
 <title>Don Bosco Lab Management System</title>
 <meta name="description" content="Lab Asset Management System — Don Bosco Polytechnic College, Department of Mechanical Engineering">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="https://placehold.co/192x192/1e3a8a/ffffff?text=DB">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
@@ -266,6 +273,30 @@ tbody tr:last-child td{border-bottom:none}
 .ms-auto{margin-left:auto} .mb-16{margin-bottom:16px} .hidden{display:none!important}
 .page-section{display:none} .page-section.active{display:block}
 
+/* ── MOBILE RESPONSIVE ───────────────────────────── */
+#mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:150;backdrop-filter:blur(2px)}
+#mob-overlay.active{display:block}
+#hamburger{display:none}
+@media(max-width:768px){
+  #hamburger{display:inline-flex!important}
+  #sidebar{position:fixed;left:calc(-1 * var(--sw) - 10px);top:0;height:100%;z-index:200;
+    transition:left .3s cubic-bezier(.4,0,.2,1);box-shadow:none}
+  #sidebar.sb-open{left:0;box-shadow:8px 0 40px rgba(0,0,0,.5)}
+  #main-content{width:100%}
+  .grid-2{grid-template-columns:1fr!important}
+  .stats-grid{grid-template-columns:1fr 1fr!important}
+  .page-body{padding:14px}
+  .topbar{padding:0 14px}
+  .asset-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  .at-img{height:90px}
+  .form-row{grid-template-columns:1fr!important}
+  .modal{max-width:100%!important;border-radius:16px 16px 0 0;margin-top:auto}
+  .modal-overlay{padding:0;align-items:flex-end}
+  .login-box{width:100%;max-width:100%;margin:14px;border-radius:18px;padding:26px}
+  .toolbar{flex-wrap:wrap;gap:7px}
+  .filter-select,.date-input{font-size:.8rem;padding:7px 9px}
+}
+
 /* ── PRINT STYLES ────────────────────────────────── */
 @media print{
   #app-layout{display:none!important}
@@ -308,39 +339,31 @@ tbody tr:last-child td{border-bottom:none}
     <div class="login-logo-row">
       <img id="login-logo" src="https://placehold.co/52x52/1e3a8a/ffffff?text=DB" alt="Logo">
       <div class="ci">
-        <h2>Don Bosco Polytechnic College</h2>
+        <h2 id="login-college-name">Don Bosco Polytechnic College</h2>
         <span>Department of Mechanical Engineering</span>
       </div>
     </div>
-
-    <!-- GAS URL setup (shown only if not configured) -->
-    <div class="gas-url-setup" id="gas-url-setup">
-      <p>⚙️ First-time setup: Paste your Google Apps Script Web App URL below.</p>
-      <div style="display:flex;gap:8px">
-        <input type="text" id="gas-url-input" class="form-control" placeholder="https://script.google.com/macros/s/...">
-        <button class="btn btn-primary btn-sm" onclick="saveGasUrl()">Save</button>
-      </div>
-      <p style="margin-top:8px;font-size:.7rem;color:var(--muted)">This URL is saved in your browser. See README for deployment instructions.</p>
-    </div>
-
     <div class="login-title">Lab Management System</div>
-    <div class="login-sub">Sign in to manage lab assets &amp; inventory</div>
+    <div class="login-sub">Sign in with your administrator credentials</div>
     <div class="form-group">
       <label>Username</label>
-      <input type="text" id="login-username" class="form-control" placeholder="Enter username" autocomplete="username">
+      <input type="text" id="login-username" class="form-control" placeholder="admin" autocomplete="username" value="admin">
     </div>
     <div class="form-group">
       <label>Password</label>
-      <input type="password" id="login-password" class="form-control" placeholder="Enter password">
+      <input type="password" id="login-password" class="form-control" placeholder="Enter password" autocomplete="current-password">
     </div>
     <button class="btn btn-primary btn-lg" onclick="doLogin()"><i class="fas fa-sign-in-alt"></i> Sign In</button>
-    <div style="margin-top:14px;font-size:.72rem;color:var(--muted);text-align:center">Default: admin / admin123 — Run <code>setup()</code> in GAS editor once</div>
+    <div style="margin-top:14px;font-size:.72rem;color:var(--muted);text-align:center">Default password: <strong style="color:var(--accent)">admin123</strong> &nbsp;&middot;&nbsp; Change it in Settings after login</div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════
      APP LAYOUT
 ══════════════════════════════════════════════════ -->
+<!-- Mobile overlay -->
+<div id="mob-overlay" onclick="closeSidebar()"></div>
+
 <div id="app-layout" class="hidden">
 
   <!-- SIDEBAR -->
@@ -384,6 +407,7 @@ tbody tr:last-child td{border-bottom:none}
   <!-- MAIN CONTENT -->
   <div id="main-content">
     <div class="topbar">
+      <button id="hamburger" class="btn btn-secondary btn-icon" onclick="toggleSidebar()" aria-label="Menu"><i class="fas fa-bars"></i></button>
       <div class="topbar-title" id="page-title">Dashboard</div>
       <div style="display:flex;gap:9px">
         <button class="btn btn-secondary btn-sm" onclick="loadPage(APP.page)"><i class="fas fa-sync-alt"></i></button>
@@ -574,6 +598,13 @@ tbody tr:last-child td{border-bottom:none}
             <div class="form-group"><label>Address</label><input type="text" id="set-addr" class="form-control"></div>
             <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Save Info</button>
           </div></div>
+          <!-- CHANGE PASSWORD CARD -->
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-lock"></i> Change Login Password</div></div><div class="card-body">
+            <div class="form-group"><label>Current Password</label><input type="password" id="pwd-curr" class="form-control" placeholder="Current password"></div>
+            <div class="form-group"><label>New Password</label><input type="password" id="pwd-new" class="form-control" placeholder="New password (min 6 chars)"></div>
+            <div class="form-group"><label>Confirm New Password</label><input type="password" id="pwd-conf" class="form-control" placeholder="Repeat new password"></div>
+            <button class="btn btn-warning" onclick="changePassword()"><i class="fas fa-key"></i> Update Password</button>
+          </div></div>
           <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-image"></i> College Logo &amp; Founder Photo</div></div><div class="card-body">
             <div class="form-row">
               <div><label style="font-size:.78rem;font-weight:600;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:8px">College Logo</label>
@@ -749,8 +780,8 @@ tbody tr:last-child td{border-bottom:none}
 ══════════════════════════════════════════════════ -->
 <script>
 'use strict';
-// ── CONFIG — paste your GAS URL here OR enter it on first login ──
-let GAS_URL = localStorage.getItem('gasUrl') || '';
+// ── CONFIG ────────────────────────────────────────
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwtJgIFQ7Ofh9QDSgdAvUPvBnjeO_POSM-zmvJ-gp7PkMx0bRyZXzMYqtvzY6j2f-Tk/exec';
 
 const LABS = ['Workshop Lab','Fluid Mechanics Lab','Metrology & Quality Lab','CAD/CAM Lab','IC Engine Lab','Heat Transfer Lab','Dynamics of Machinery Lab','Strength of Materials Lab','Production Technology Lab','Computer Lab','Common Store'];
 const CATS = ['Machine Tools','Hand Tools','Measuring Instruments','Power Tools','Welding Equipment','Hydraulic Equipment','Thermal Equipment','Pneumatic Equipment','Safety Equipment','Furniture & Fixtures','Electronic Equipment','Computer Hardware','Other'];
@@ -760,7 +791,6 @@ const APP = { user:null, settings:{}, staff:[], assets:[], page:'dashboard', sca
 
 // ── API ───────────────────────────────────────────
 async function api(fn, ...args) {
-  if (!GAS_URL) { toast('GAS URL not set. Go to Settings.','error'); return {success:false,message:'No GAS URL'}; }
   try {
     const res = await fetch(GAS_URL, {
       method:'POST',
@@ -773,22 +803,6 @@ async function api(fn, ...args) {
   }
 }
 
-// ── GAS URL SETUP ─────────────────────────────────
-function saveGasUrl() {
-  const url = document.getElementById('gas-url-input').value.trim();
-  if (!url.startsWith('https://script.google.com')) { toast('Invalid GAS URL','error'); return; }
-  GAS_URL = url;
-  localStorage.setItem('gasUrl', url);
-  document.getElementById('gas-url-setup').classList.add('hidden');
-  toast('GAS URL saved!','success');
-}
-function saveGasUrlFromSettings() {
-  const url = document.getElementById('set-gas-url').value.trim();
-  if (!url) { toast('Enter a URL','warning'); return; }
-  GAS_URL = url;
-  localStorage.setItem('gasUrl', url);
-  toast('URL updated!','success');
-}
 
 // ── UTILS ─────────────────────────────────────────
 const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -822,29 +836,61 @@ function staffOpts(ph='-- Select Staff --') { return `<option value="">${ph}</op
 function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-// ── AUTH ──────────────────────────────────────────
-async function doLogin() {
+// ── AUTH — local credential check (no GAS call needed) ──
+const DEFAULT_USER = 'admin';
+const DEFAULT_PASS = 'admin123';
+
+function doLogin() {
   const u = document.getElementById('login-username').value.trim();
   const p = document.getElementById('login-password').value.trim();
-  if (!u||!p) { toast('Enter username and password','warning'); return; }
-  if (!GAS_URL) { toast('Enter your GAS URL first','warning'); return; }
-  loading('Signing in…');
-  const r = await api('server_login', u, p);
-  doneLoading();
-  if (r.success) {
-    APP.user = r.user;
-    await Promise.all([loadSettings(), loadStaff()]);
-    document.getElementById('login-page').classList.add('hidden');
-    document.getElementById('app-layout').classList.remove('hidden');
-    const ini = (r.user.name||'U').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
-    document.getElementById('user-av').textContent = ini;
-    document.getElementById('user-name').textContent = r.user.name;
-    document.getElementById('user-role').textContent = r.user.role;
-    nav('dashboard');
-    toast(`Welcome, ${r.user.name}!`,'success');
-  } else { toast(r.message||'Login failed','error'); document.getElementById('login-password').value=''; }
+  if (!u || !p) { toast('Enter username and password', 'warning'); return; }
+
+  // Check against locally stored credential
+  const storedUser = localStorage.getItem('labUser') || DEFAULT_USER;
+  const storedPass = localStorage.getItem('labPass') || DEFAULT_PASS;
+
+  if (u === storedUser && p === storedPass) {
+    APP.user = { name: 'Lab Administrator', role: 'Admin', username: u };
+    enterApp();
+  } else {
+    toast('Incorrect username or password', 'error');
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-password').focus();
+  }
 }
-function doLogout() { APP.user=null; stopScanner(); document.getElementById('app-layout').classList.add('hidden'); document.getElementById('login-page').classList.remove('hidden'); }
+
+async function enterApp() {
+  loading('Loading…');
+  await Promise.all([loadSettings(), loadStaff()]);
+  doneLoading();
+  document.getElementById('login-page').classList.add('hidden');
+  document.getElementById('app-layout').classList.remove('hidden');
+  document.getElementById('user-av').textContent  = 'LA';
+  document.getElementById('user-name').textContent = APP.user.name;
+  document.getElementById('user-role').textContent = APP.user.role;
+  nav('dashboard');
+  toast('Welcome! Lab Management System ready.', 'success');
+}
+
+function doLogout() {
+  APP.user = null;
+  stopScanner();
+  document.getElementById('app-layout').classList.add('hidden');
+  document.getElementById('login-page').classList.remove('hidden');
+  document.getElementById('login-password').value = '';
+}
+
+// ── MOBILE SIDEBAR ────────────────────────────────
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('mob-overlay');
+  sb.classList.toggle('sb-open');
+  ov.classList.toggle('active');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('sb-open');
+  document.getElementById('mob-overlay').classList.remove('active');
+}
 
 async function loadSettings() {
   const r = await api('server_getSettings');
@@ -852,8 +898,16 @@ async function loadSettings() {
     APP.settings = r.data;
     const logo = r.data.logo_url||'';
     const col  = r.data.college_name||'Don Bosco Polytechnic College';
-    if (logo) { document.getElementById('sb-logo').src=logo; document.getElementById('sb-logo').classList.remove('hidden'); document.getElementById('sb-logo-ph').classList.add('hidden'); document.getElementById('login-logo').src=logo; }
+    if (logo) {
+      document.getElementById('sb-logo').src=logo;
+      document.getElementById('sb-logo').classList.remove('hidden');
+      document.getElementById('sb-logo-ph').classList.add('hidden');
+      document.getElementById('login-logo').src=logo;
+    }
     document.getElementById('sb-college').textContent = col;
+    // Update login page college name too
+    const lcn = document.getElementById('login-college-name');
+    if (lcn) lcn.textContent = col;
   }
 }
 async function loadStaff() { const r=await api('server_getStaff'); if(r.success) APP.staff=r.data; }
@@ -868,6 +922,7 @@ function nav(page) {
   const titles = {dashboard:'Dashboard',assets:'Asset Catalog',checkout:'Check-Out / Return',register:'In/Out Register',qr:'QR Code Generator',maintenance:'Maintenance',consumables:'Consumables & Stock',documents:'Documents',reports:'Reports',staff:'Staff Management',settings:'Settings'};
   document.getElementById('page-title').textContent = titles[page]||page;
   stopScanner();
+  closeSidebar(); // auto-close on mobile nav
   loadPage(page);
 }
 
@@ -1407,12 +1462,14 @@ async function delStaff(id) {
 
 // ── SETTINGS ──────────────────────────────────────
 function renderSettings() {
-  document.getElementById('set-college').value=APP.settings.college_name||'';
-  document.getElementById('set-dept').value=APP.settings.department||'';
-  document.getElementById('set-addr').value=APP.settings.address||'';
-  document.getElementById('set-gas-url').value=GAS_URL||'';
-  if(APP.settings.logo_url)   document.getElementById('set-logo-prev').src=APP.settings.logo_url;
-  if(APP.settings.founder_url)document.getElementById('set-found-prev').src=APP.settings.founder_url;
+  document.getElementById('set-college').value  = APP.settings.college_name||'Don Bosco Polytechnic College';
+  document.getElementById('set-dept').value     = APP.settings.department||'Department of Mechanical Engineering';
+  document.getElementById('set-addr').value     = APP.settings.address||'';
+  document.getElementById('set-gas-url').value  = GAS_URL||'';
+  if (APP.settings.logo_url)    document.getElementById('set-logo-prev').src    = APP.settings.logo_url;
+  if (APP.settings.founder_url) document.getElementById('set-found-prev').src = APP.settings.founder_url;
+  // Clear password fields
+  ['pwd-curr','pwd-new','pwd-conf'].forEach(id=>document.getElementById(id).value='');
 }
 async function saveSettings() {
   loading('Saving…');
@@ -1422,6 +1479,20 @@ async function saveSettings() {
   await loadSettings();
   doneLoading();
   toast('Settings saved!','success');
+}
+
+function changePassword() {
+  const curr = document.getElementById('pwd-curr').value;
+  const nw   = document.getElementById('pwd-new').value;
+  const conf = document.getElementById('pwd-conf').value;
+  const storedPass = localStorage.getItem('labPass') || DEFAULT_PASS;
+  if (!curr || !nw || !conf) { toast('Fill all password fields','warning'); return; }
+  if (curr !== storedPass)   { toast('Current password is incorrect','error'); return; }
+  if (nw.length < 6)         { toast('New password must be at least 6 characters','warning'); return; }
+  if (nw !== conf)           { toast('New passwords do not match','error'); return; }
+  localStorage.setItem('labPass', nw);
+  ['pwd-curr','pwd-new','pwd-conf'].forEach(id=>document.getElementById(id).value='');
+  toast('Password updated! Use it on next login.','success');
 }
 function uploadFile(input, key, prevId) {
   const file=input.files[0];
@@ -1504,26 +1575,25 @@ async function printReport(type) {
   printTableWindow(title, html);
 }
 
-// ── INIT ──────────────────────────────────────────
+// ── INIT ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  // Check saved GAS URL
-  if (GAS_URL) document.getElementById('gas-url-setup').classList.add('hidden');
-
-  // Try to load settings for login page branding
-  if (GAS_URL) {
-    const r = await api('server_getSettings');
+  // Pre-load college branding for the login page
+  api('server_getSettings').then(r => {
     if (r.success) {
-      const logo=r.data.logo_url||'';
-      if(logo) document.getElementById('login-logo').src=logo;
+      const logo = r.data.logo_url||'';
+      if (logo) document.getElementById('login-logo').src = logo;
+      const lcn = document.getElementById('login-college-name');
+      if (lcn && r.data.college_name) lcn.textContent = r.data.college_name;
     }
-  }
+  }).catch(()=>{});
 
   // Enter key on login
   document.getElementById('login-password').addEventListener('keyup', e=>{ if(e.key==='Enter') doLogin(); });
+  document.getElementById('login-username').addEventListener('keyup', e=>{ if(e.key==='Enter') document.getElementById('login-password').focus(); });
 
   // Populate static dropdowns
-  document.getElementById('af-cat').innerHTML = buildOpts(CATS,'-- Category --');
-  document.getElementById('af-lab').innerHTML = buildOpts(LABS,'-- Lab --');
+  document.getElementById('af-cat').innerHTML  = buildOpts(CATS,'-- Category --');
+  document.getElementById('af-lab').innerHTML  = buildOpts(LABS,'-- Lab --');
   document.getElementById('asset-lf').innerHTML = '<option value="All">All Labs</option>'+LABS.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
   document.getElementById('ci-cat').innerHTML  = buildOpts(CONS_CATS,'-- Category --');
 
@@ -1532,6 +1602,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Close modal on backdrop click
   document.querySelectorAll('.modal-overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){closeModal(ov.id);stopScanner();}}));
+
+  // Register Service Worker (PWA)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
 });
 </script>
 </body>
