@@ -814,8 +814,8 @@ tbody tr:last-child td{border-bottom:none}
 ══════════════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<!-- qrcode-generator: synchronous, reliable, no CDN API issues -->
-<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<!-- QRious: dead-simple QR generator, one-line API, from cdnjs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
 <!-- ══════════════════════════════════════════════════
      APPLICATION SCRIPT
@@ -824,34 +824,20 @@ tbody tr:last-child td{border-bottom:none}
 'use strict';
 // ── CONFIG ────────────────────────────────────────
 
-// ── QR CODE HELPER (qrcode-generator library) ─────────────
-// Generates a crisp PNG data-URL from any text. Synchronous, no CDN quirks.
+// ── QR CODE HELPER (QRious library) ─────────────────────
+// QRious: synchronous, one-line API: new QRious({value,size}) → .toDataURL()
 function qrToDataURL(text, size) {
-  size = size || 140;
   try {
-    const qr = qrcode(0, 'M');   // type 0 = auto-size, M = medium error correction
-    qr.addData(text);
-    qr.make();
-    const count = qr.getModuleCount();
-    const cell  = Math.max(1, Math.floor((size - 16) / count));
-    const total = cell * count + 16; // 8px quiet zone each side
-    const cv  = document.createElement('canvas');
-    cv.width  = total;
-    cv.height = total;
-    const ctx = cv.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, total, total);
-    ctx.fillStyle = '#000000';
-    for (let r = 0; r < count; r++) {
-      for (let c = 0; c < count; c++) {
-        if (qr.isDark(r, c)) {
-          ctx.fillRect(8 + c * cell, 8 + r * cell, cell, cell);
-        }
-      }
-    }
-    return cv.toDataURL('image/png');
+    const qr = new QRious({
+      value: text,
+      size:  size || 140,
+      level: 'M',          // medium error correction
+      background: '#ffffff',
+      foreground:  '#000000'
+    });
+    return qr.toDataURL('image/png');
   } catch(e) {
-    console.error('qrToDataURL error:', e);
+    console.error('QR generation error:', text, e);
     return null;
   }
 }
