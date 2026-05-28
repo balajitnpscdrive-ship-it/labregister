@@ -1161,36 +1161,83 @@ async function generateQR() {
   if (!sel.length) { toast('Select at least one asset','warning'); return; }
   loading('Generating QR codes…');
   const preview = document.getElementById('qr-preview');
-  preview.innerHTML='';
+  preview.innerHTML = '';
+  let count = 0;
   for (const id of sel) {
     const a = APP.assets.find(x=>x.assetId===id);
     if (!a) continue;
-    const card=document.createElement('div'); card.className='qr-card';
-    const cv=document.createElement('canvas');
-    try { await new Promise((res,rej)=>QRCode.toCanvas(cv,id,{width:128,margin:1},e=>e?rej(e):res())); } catch(e){ continue; }
-    card.appendChild(cv);
-    card.innerHTML+=`<div class="qr-name">${esc(a.name)}</div><div class="qr-id">${esc(id)}</div><div class="qr-lab">${esc(a.lab)}</div>`;
+    // Render to canvas then immediately convert to data URL
+    const cv = document.createElement('canvas');
+    try {
+      await new Promise((res,rej) => QRCode.toCanvas(cv, id, {width:140, margin:1}, e => e ? rej(e) : res()));
+    } catch(e) { continue; }
+    const dataUrl = cv.toDataURL('image/png');
+    // Build card using only HTML (img tag, no canvas) so innerHTML is safe
+    const card = document.createElement('div');
+    card.className = 'qr-card';
+    card.innerHTML = `
+      <img src="${dataUrl}" width="128" height="128" style="display:block;margin:0 auto 7px">
+      <div class="qr-name">${esc(a.name)}</div>
+      <div class="qr-id">${esc(id)}</div>
+      <div class="qr-lab">${esc(a.lab)}</div>`;
     preview.appendChild(card);
     api('server_markQRGenerated', id);
+    count++;
   }
   doneLoading();
-  document.getElementById('qr-actions').classList.remove('hidden');
-  toast(`${sel.length} QR codes generated!`,'success');
+  if (count > 0) {
+    document.getElementById('qr-actions').classList.remove('hidden');
+    toast(`${count} QR code${count>1?'s':''} generated!`, 'success');
+  } else {
+    toast('No QR codes could be generated', 'error');
+  }
 }
 function printQR() {
-  const pa  = document.getElementById('print-area');
   const col = APP.settings.college_name||'Don Bosco Polytechnic College';
   const dep = APP.settings.department||'Department of Mechanical Engineering';
   const log = APP.settings.logo_url||'';
   const fou = APP.settings.founder_url||'';
-  let items='';
-  document.querySelectorAll('#qr-preview .qr-card').forEach(card=>{
-    const cv=card.querySelector('canvas');
-    if(!cv) return;
-    items+=`<div class="p-qr-item"><img src="${cv.toDataURL()}" width="108" height="108"><div class="p-qr-id">${esc(card.querySelector('.qr-id').textContent)}</div><div class="p-qr-name">${esc(card.querySelector('.qr-name').textContent)}</div><div class="p-qr-lab">${esc(card.querySelector('.qr-lab').textContent)}</div></div>`;
+  let items = '';
+  document.querySelectorAll('#qr-preview .qr-card').forEach(card => {
+    const img  = card.querySelector('img');
+    const name = card.querySelector('.qr-name');
+    const qrid = card.querySelector('.qr-id');
+    const lab  = card.querySelector('.qr-lab');
+    if (!img || !img.src) return;
+    items += `<div class="p-qr-item">
+      <img src="${img.src}" width="108" height="108">
+      <div class="p-qr-id">${esc(qrid ? qrid.textContent : '')}</div>
+      <div class="p-qr-name">${esc(name ? name.textContent : '')}</div>
+      <div class="p-qr-lab">${esc(lab  ? lab.textContent  : '')}</div>
+    </div>`;
   });
-  pa.innerHTML=`<div class="p-header">${log?`<img src="${log}" width="66" height="66">`:'<div style="width:66px"></div>'}<div class="p-center"><div class="p-college">${esc(col)}</div><div class="p-dept">${esc(dep)}</div><div class="p-title">Asset QR Code Labels — ${new Date().toLocaleDateString('en-IN')}</div></div>${fou?`<img src="${fou}" width="66" height="66">`:'<div style="width:66px"></div>'}</div><div class="p-qr-grid">${items}</div>`;
-  pa.style.display='block'; window.print(); setTimeout(()=>pa.style.display='none',1000);
+  if (!items) { toast('No QR codes to print. Generate them first.','warning'); return; }
+  const logoHtml   = log ? `<img src="${log}" width="66" height="66">` : '<div style="width:66px"></div>';
+  const founderHtml = fou ? `<img src="${fou}" width="66" height="66">` : '<div style="width:66px"></div>';
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>QR Labels — ${esc(col)}</title>
+    <style>
+      body{font-family:Arial,sans-serif;font-size:11px;margin:0;padding:15mm}
+      .p-header{display:flex;align-items:center;gap:18px;margin-bottom:15px;padding-bottom:12px;border-bottom:2.5px solid #1e40af}
+      .p-header img{width:66px;height:66px;object-fit:contain;background:#fff;border-radius:8px;border:1px solid #e5e7eb;padding:3px}
+      .p-center{flex:1;text-align:center}
+      .p-college{font-size:1.1em;font-weight:800;color:#1e3a8a}
+      .p-dept{font-size:.85em;font-weight:600;color:#374151;margin-top:2px}
+      .p-title{font-size:.76em;color:#6b7280;margin-top:3px}
+      .p-qr-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+      .p-qr-item{border:1px solid #ccc;border-radius:5px;padding:9px;text-align:center;background:#fff;break-inside:avoid}
+      .p-qr-item img{display:block;margin:0 auto 5px;width:108px;height:108px}
+      .p-qr-id{font-size:.68rem;font-family:monospace;font-weight:700;color:#1e3a8a}
+      .p-qr-name{font-size:.65rem;color:#374151;margin-top:2px;word-break:break-word}
+      .p-qr-lab{font-size:.58rem;color:#6b7280;margin-top:1px}
+    </style></head><body>
+    <div class="p-header">${logoHtml}<div class="p-center"><div class="p-college">${esc(col)}</div><div class="p-dept">${esc(dep)}</div><div class="p-title">Asset QR Code Labels — ${new Date().toLocaleDateString('en-IN')}</div></div>${founderHtml}</div>
+    <div class="p-qr-grid">${items}</div>
+    <script>window.onload=function(){window.print();window.close();}<\/script>
+  </body></html>`;
+  const win = window.open('','_blank','width=900,height=700');
+  win.document.write(html);
+  win.document.close();
 }
 
 // ── SCANNER ───────────────────────────────────────
