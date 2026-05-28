@@ -814,8 +814,8 @@ tbody tr:last-child td{border-bottom:none}
 ══════════════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<!-- qrcode.js: supports QRCode.toDataURL() and QRCode.toCanvas() -->
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<!-- qrcode-generator: synchronous, reliable, no CDN API issues -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 
 <!-- ══════════════════════════════════════════════════
      APPLICATION SCRIPT
@@ -823,6 +823,38 @@ tbody tr:last-child td{border-bottom:none}
 <script>
 'use strict';
 // ── CONFIG ────────────────────────────────────────
+
+// ── QR CODE HELPER (qrcode-generator library) ─────────────
+// Generates a crisp PNG data-URL from any text. Synchronous, no CDN quirks.
+function qrToDataURL(text, size) {
+  size = size || 140;
+  try {
+    const qr = qrcode(0, 'M');   // type 0 = auto-size, M = medium error correction
+    qr.addData(text);
+    qr.make();
+    const count = qr.getModuleCount();
+    const cell  = Math.max(1, Math.floor((size - 16) / count));
+    const total = cell * count + 16; // 8px quiet zone each side
+    const cv  = document.createElement('canvas');
+    cv.width  = total;
+    cv.height = total;
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, total, total);
+    ctx.fillStyle = '#000000';
+    for (let r = 0; r < count; r++) {
+      for (let c = 0; c < count; c++) {
+        if (qr.isDark(r, c)) {
+          ctx.fillRect(8 + c * cell, 8 + r * cell, cell, cell);
+        }
+      }
+    }
+    return cv.toDataURL('image/png');
+  } catch(e) {
+    console.error('qrToDataURL error:', e);
+    return null;
+  }
+}
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwtJgIFQ7Ofh9QDSgdAvUPvBnjeO_POSM-zmvJ-gp7PkMx0bRyZXzMYqtvzY6j2f-Tk/exec';
 
 const LABS = ['Workshop Lab','Fluid Mechanics Lab','Metrology & Quality Lab','CAD/CAM Lab','IC Engine Lab','Heat Transfer Lab','Dynamics of Machinery Lab','Strength of Materials Lab','Production Technology Lab','Computer Lab','Common Store'];
@@ -1287,15 +1319,14 @@ function showQRSingle(id) {
   if (!a) return;
   document.getElementById('qr-single-name').textContent = a.name;
   const c = document.getElementById('qr-single-canvas');
-  c.innerHTML = '<div style="color:var(--muted);padding:18px;text-align:center">Generating…</div>';
-  QRCode.toDataURL(id, {width:200, margin:2, color:{dark:'#000000',light:'#ffffff'}}, (err, url) => {
-    if (!err) {
-      c.innerHTML = `<img src="${url}" width="200" height="200" style="display:block;margin:0 auto" data-url="${url}">`;
-      api('server_markQRGenerated', id);
-    } else {
-      c.innerHTML = `<div style="color:var(--danger);padding:14px">Error: ${err.message||err}</div>`;
-    }
-  });
+  // Use synchronous qrToDataURL helper
+  const url = qrToDataURL(id, 200);
+  if (url) {
+    c.innerHTML = `<img src="${url}" width="200" height="200" style="display:block;margin:0 auto;border-radius:8px">`;
+    api('server_markQRGenerated', id);
+  } else {
+    c.innerHTML = '<div style="color:var(--danger);padding:14px">QR generation failed</div>';
+  }
   document.getElementById('qr-single-info').innerHTML = `<div class="text-accent font-mono fw-bold">${esc(id)}</div><div style="font-size:.78rem;color:var(--text2)">${esc(a.lab)} · ${esc(a.category)}</div>`;
   openModal('qr-single-modal');
 }
@@ -1313,34 +1344,36 @@ async function loadQR() {
   const r = await api('server_getAssets');
   if (!r.success) return;
   APP.assets = r.data;
-  document.getElementById('qr-checklist').innerHTML = APP.assets.map(a=>`
-    <label class="form-check" style="padding:7px 11px;border:1px solid var(--border);border-radius:7px;cursor:pointer">
-      <input type="checkbox" value="${esc(a.assetId)}" class="qr-cb">
-      <span><span class="font-mono text-accent" style="font-size:.76rem">${esc(a.assetId)}</span> — ${esc(a.name)} <span class="text-muted" style="font-size:.73rem">(${esc(a.lab)})</span></span>
-    </label>`).join('');
+  // Apply active lab filter
+  const filtered = APP.activeLab === 'All' ? APP.assets
+                 : APP.assets.filter(a => a.lab === APP.activeLab);
+  const labLabel = APP.activeLab === 'All' ? 'All Labs' : APP.activeLab;
+  document.getElementById('qr-checklist').innerHTML = filtered.length
+    ? filtered.map(a=>`
+      <label class="form-check" style="padding:7px 11px;border:1px solid var(--border);border-radius:7px;cursor:pointer">
+        <input type="checkbox" value="${esc(a.assetId)}" class="qr-cb">
+        <span><span class="font-mono text-accent" style="font-size:.76rem">${esc(a.assetId)}</span> — ${esc(a.name)} <span class="text-muted" style="font-size:.73rem">(${esc(a.lab)})</span></span>
+      </label>`).join('')
+    : `<div style="text-align:center;padding:30px;color:var(--muted)"><i class="fas fa-flask" style="font-size:2rem;margin-bottom:10px;display:block"></i>No assets in <strong>${esc(labLabel)}</strong></div>`;
 }
 function toggleAllQR(v) { document.querySelectorAll('.qr-cb').forEach(cb=>cb.checked=v); }
-async function generateQR() {
+
+// SYNCHRONOUS — uses qrcode-generator library via qrToDataURL() helper. No async, no CDN callback quirks.
+function generateQR() {
   const sel = [...document.querySelectorAll('.qr-cb:checked')].map(cb=>cb.value);
   if (!sel.length) { toast('Select at least one asset','warning'); return; }
-  loading('Generating QR codes…');
   const preview = document.getElementById('qr-preview');
   preview.innerHTML = '';
   let count = 0;
   for (const id of sel) {
     const a = APP.assets.find(x=>x.assetId===id);
     if (!a) continue;
-    // Render to canvas then immediately convert to data URL
-    const cv = document.createElement('canvas');
-    try {
-      await new Promise((res,rej) => QRCode.toCanvas(cv, id, {width:140, margin:1}, e => e ? rej(e) : res()));
-    } catch(e) { continue; }
-    const dataUrl = cv.toDataURL('image/png');
-    // Build card using only HTML (img tag, no canvas) so innerHTML is safe
+    const dataUrl = qrToDataURL(id, 140);  // synchronous — instant result
+    if (!dataUrl) { console.warn('QR failed for', id); continue; }
     const card = document.createElement('div');
     card.className = 'qr-card';
     card.innerHTML = `
-      <img src="${dataUrl}" width="128" height="128" style="display:block;margin:0 auto 7px">
+      <img src="${dataUrl}" width="128" height="128" style="display:block;margin:0 auto 7px;border-radius:4px">
       <div class="qr-name">${esc(a.name)}</div>
       <div class="qr-id">${esc(id)}</div>
       <div class="qr-lab">${esc(a.lab)}</div>`;
@@ -1348,12 +1381,11 @@ async function generateQR() {
     api('server_markQRGenerated', id);
     count++;
   }
-  doneLoading();
   if (count > 0) {
     document.getElementById('qr-actions').classList.remove('hidden');
     toast(`${count} QR code${count>1?'s':''} generated!`, 'success');
   } else {
-    toast('No QR codes could be generated', 'error');
+    toast('QR library not ready — please reload the page', 'error');
   }
 }
 function printQR() {
