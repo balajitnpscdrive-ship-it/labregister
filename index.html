@@ -1257,7 +1257,7 @@ async function saveAsset() {
   if (id) {
     // Edit: upload photo if new one selected, then update
     const photoUrl = await uploadAssetPhoto(id);
-    if (photoUrl) data.imageUrl = photoUrl;
+    data.imageUrl = photoUrl || '';
     r = await api('server_updateAsset', id, data);
   } else {
     // Add: create asset(s) first, then upload photo for each
