@@ -601,6 +601,14 @@ tbody tr:last-child td{border-bottom:none}
           <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-sign-out-alt"></i> Currently Checked Out</div></div><div class="card-body"><p style="font-size:.83rem;color:var(--text2);margin-bottom:14px">All assets not yet returned.</p><button class="btn btn-danger w-100" onclick="printReport('checkedout')"><i class="fas fa-print"></i> Print Checked-Out List</button></div></div>
           <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-tools"></i> Maintenance Report</div></div><div class="card-body"><p style="font-size:.83rem;color:var(--text2);margin-bottom:14px">All maintenance tickets with status and costs.</p><button class="btn btn-warning w-100" onclick="printReport('maintenance')"><i class="fas fa-print"></i> Print Maintenance Report</button></div></div>
           <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-box-open"></i> Inventory Report</div></div><div class="card-body"><p style="font-size:.83rem;color:var(--text2);margin-bottom:14px">Consumables and stock with low-stock highlights.</p><button class="btn btn-success w-100" onclick="printReport('inventory')"><i class="fas fa-print"></i> Print Inventory Report</button></div></div>
+          <div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-clipboard-check"></i> Monthly Lab Audit & Verification</div></div><div class="card-body">
+            <p style="font-size:.83rem;color:var(--text2);margin-bottom:14px">Generate physical asset verification sheet with sign-off fields for Principal, HOD, and Lab Staff.</p>
+            <div class="form-row mb-16">
+              <div class="form-group" style="margin-bottom:0"><label>Audit Month</label><input type="month" id="rep-audit-month" class="form-control date-input" style="padding:7px 10px"></div>
+              <div class="form-group" style="margin-bottom:0"><label>Audited By</label><select id="rep-audit-staff" class="form-control" style="padding:7px 10px"></select></div>
+            </div>
+            <button class="btn btn-primary w-100" onclick="printReport('audit')"><i class="fas fa-print"></i> Print Verification Sheet</button>
+          </div></div>
         </div>
       </div>
 
@@ -1022,7 +1030,15 @@ async function loadPage(page) {
     case 'maintenance': await loadMaintenance();   break;
     case 'consumables': await loadConsumables();   break;
     case 'documents':   await loadDocs();          break;
-    case 'reports':     /* static */              break;
+    case 'reports':
+      const ras = document.getElementById('rep-audit-staff');
+      if (ras) ras.innerHTML = staffOpts('-- Select Auditor --');
+      const ram = document.getElementById('rep-audit-month');
+      if (ram && !ram.value) {
+        const today = new Date();
+        ram.value = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+      }
+      break;
     case 'staff':       await loadStaffPage();    break;
     case 'settings':    renderSettings();          break;
   }
@@ -1813,6 +1829,89 @@ async function printReport(type) {
     if(!r.success){toast(r.message,'error');return;}
     title=`Inventory / Consumables Report${labSuffix}`;
     html=`<table><thead><tr><th>#</th><th>Item ID</th><th>Name</th><th>Category</th><th>Unit</th><th>Current Stock</th><th>Min Stock</th><th>Location</th></tr></thead><tbody>${r.data.length?r.data.map((it,i)=>`<tr style="${it.isLow?'background:#fff1f2':''}"><td>${i+1}</td><td style="font-family:monospace">${esc(it.itemId)}</td><td>${esc(it.name)}${it.isLow?' ⚠️':''}</td><td>${esc(it.category)}</td><td>${esc(it.unit)}</td><td style="font-weight:bold;color:${it.isLow?'#dc2626':'#059669'}">${it.currentStock}</td><td>${it.minStock}</td><td>${esc(it.location||'—')}</td></tr>`).join(''):'<tr><td colspan="8" style="text-align:center">No items</td></tr>'}</tbody></table>`;
+  } else if (type==='audit') {
+    const month = document.getElementById('rep-audit-month').value;
+    const auditor = document.getElementById('rep-audit-staff').value;
+    const r=await api('server_getAssets'); doneLoading();
+    if(!r.success){toast(r.message,'error');return;}
+    const data = labFilter==='All' ? r.data : r.data.filter(a=>a.lab===labFilter);
+    const monthLabel = month ? new Date(month + '-02').toLocaleDateString('en-IN', {month:'long', year:'numeric'}) : new Date().toLocaleDateString('en-IN', {month:'long', year:'numeric'});
+    title=`Monthly Physical Asset Verification & Audit Report${labSuffix}`;
+    
+    let rows = data.length ? data.map((a,i)=>`
+      <tr>
+        <td>${i+1}</td>
+        <td style="font-family:monospace;font-size:9.5px">${esc(a.assetId)}</td>
+        <td style="font-weight:bold">${esc(a.name)}</td>
+        <td>${esc(a.category)}</td>
+        <td style="font-family:monospace;font-size:9.5px">${esc(a.serialNo||'—')}</td>
+        <td>${esc(a.status)}</td>
+        <td style="font-size:8px;line-height:1.2;white-space:nowrap">
+          [ &nbsp; ] Functional<br>
+          [ &nbsp; ] Repair Needed<br>
+          [ &nbsp; ] Condemned
+        </td>
+        <td style="font-size:8px;line-height:1.2;white-space:nowrap">
+          [ &nbsp; ] Verified<br>
+          [ &nbsp; ] Missing
+        </td>
+        <td style="width:140px"></td>
+      </tr>`).join('')
+      : '<tr><td colspan="9" style="text-align:center">No assets found in this lab for verification.</td></tr>';
+
+    html=`
+      <div style="margin-bottom:15px;font-size:10px;background:#f3f4f6;padding:10px;border-radius:6px;border:1px solid #d1d5db;display:flex;justify-content:space-between">
+        <div><strong>Lab / Workshop:</strong> ${esc(labFilter === 'All' ? 'All Mechanical Labs' : labFilter)}</div>
+        <div><strong>Audit Month:</strong> ${esc(monthLabel)}</div>
+        <div><strong>Audited By:</strong> ${esc(auditor || 'Lab Technician')}</div>
+      </div>
+      <p style="font-size:9px;margin-bottom:10px;color:#374151"><em>Instructions for Auditor: Physically verify each asset in the laboratory against the registered records. Place a tick mark in the physical condition and verification columns, and write any physical inspection remarks.</em></p>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Asset ID</th>
+            <th>Asset Name</th>
+            <th>Category</th>
+            <th>Serial No.</th>
+            <th>System Status</th>
+            <th style="text-align:center;width:110px">Physical Condition</th>
+            <th style="text-align:center;width:95px">Audit Status</th>
+            <th style="width:140px">Auditor Remarks / Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+      
+      <div style="margin-top: 60px; display: flex; justify-content: space-between; font-size: 10px; padding: 0 5mm; page-break-inside: avoid;">
+        <div>
+          <br><br>
+          <strong>___________________________</strong><br>
+          <strong>Lab Assistant / Technician</strong><br>
+          (Signature & Date)
+        </div>
+        <div style="text-align: center;">
+          <br><br>
+          <strong>___________________________</strong><br>
+          <strong>Lab In-charge / Staff</strong><br>
+          (Verified by)
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 8.5px; font-style: italic; margin-bottom: 5px; color: #555;">Forwarded through:</div>
+          <strong>___________________________</strong><br>
+          <strong>Head of Department (HOD)</strong><br>
+          (Dept. of Mech. Engg.)
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 8.5px; font-style: italic; margin-bottom: 5px; color: #555;">Submitted for Approval:</div>
+          <strong>___________________________</strong><br>
+          <strong>Principal</strong><br>
+          (Don Bosco Polytechnic College)
+        </div>
+      </div>
+    `;
   } else { doneLoading(); return; }
   printTableWindow(title, html);
 }
