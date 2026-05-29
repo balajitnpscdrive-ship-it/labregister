@@ -3,10 +3,12 @@
    Cache-first for app shell, network-first for API calls
 ═══════════════════════════════════════════════════════ */
 
-const CACHE_NAME  = 'labmgmt-v1';
+const CACHE_NAME  = 'labmgmt-v2';
 const SHELL_FILES = [
   './index.html',
   './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap',
   'https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js',
